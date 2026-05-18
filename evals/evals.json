@@ -1,0 +1,26 @@
+{
+  "skill_name": "pricing-pipeline",
+  "evals": [
+    {
+      "id": 1,
+      "name": "meshnode-v1-replay",
+      "prompt": "用 pricing-pipeline 跑 MeshNode 定价分析，复刻 v1 报告。\n\n竞品种子（节点单价 EUR / DE 市场）：\n- TP-Link Deco BE25 €73\n- Amazon eero 7 €80\n- TP-Link Deco X50 €58\n- Google Nest Wifi Pro €153\n- NETGEAR Orbi 370 €217\n\n本品规格：WiFi 7 dual-band, 2.5GbE, 604 sqm coverage，PPT €73/节点。\n\n竞品用户痛点文件：/Users/michaelzhang/Desktop/mesh/65_MeshNode-Performance-Price-Conversion-Forecast/65_MeshNode-Performance-Price-Conversion-Forecast/竞品评论痛點.html\n竞品用户画像文件：/Users/michaelzhang/Desktop/mesh/65_MeshNode-Performance-Price-Conversion-Forecast/65_MeshNode-Performance-Price-Conversion-Forecast/竞品评论用戶畫像.html\nReddit 痛点：/Users/michaelzhang/Desktop/mesh/65_MeshNode-Performance-Price-Conversion-Forecast/65_MeshNode-Performance-Price-Conversion-Forecast/Reddit痛點.html\nReddit 画像：/Users/michaelzhang/Desktop/mesh/65_MeshNode-Performance-Price-Conversion-Forecast/65_MeshNode-Performance-Price-Conversion-Forecast/Reddit用戶畫像.html\n\n用 wifi-mesh-router 默认配置；货币 EUR。\n\n输出：定价综合报告.html（给 PM）+ 方法详解.md（给分析师），落到当前目录的 meshnode_replay/ 子目录。",
+      "expected_output": "三法中位 €205 / 节点价 €73 / Flint+2 套 €285 / Top 缺口 = C 段 stability_handoff",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "kvm-switch-new-category",
+      "prompt": "用 pricing-pipeline 给 KVM 切换器做定价分析。\n\n竞品种子（每件单价 USD / US 市场）：\n- Level1Techs Optix 14 $350\n- Tesmart HDMI 2.0 4K $260\n- Black Box ServSwitch $500\n- CKL HDMI Matrix $180\n- UGreen KVM $150\n\n本品规格未定，目标价 $250 / 件。\n\n竞品用户痛点 CSV：./kvm_pain_sample.csv（如不存在请用 placeholder + WebSearch 拉补充数据）\n\n用 kvm-switch 配置；货币 USD。\n\n输出：定价综合报告.html + 方法详解.md，落到当前目录的 kvm_pricing/ 子目录。",
+      "expected_output": "三法中位 ~$250-300 / 主力价 $250 / 三轨 SKU 矩阵涵盖 sub-$200 / $250 / $400 价位",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "smart-kettle-new-category",
+      "prompt": "用 pricing-pipeline 给智能水壶做定价分析。\n\n竞品种子（每件单价 EUR / DE 市场）：\n- Smarter iKettle 3.0 €169\n- Bosch Styline €115\n- Tefal Quick Cup €55\n- Xiaomi MiJia Smart Kettle €70\n- Philips Avance €105\n\n本品规格：1.7L, 2200W, 温度可调, 保温, App 控制，PPT €80/件。\n\n竞品评论痛点 CSV：./kettle_pain_sample.csv（如不存在请用 placeholder + WebSearch 拉补充数据）\n\n用 smart-kettle 配置；货币 EUR。\n\n输出：定价综合报告.html + 方法详解.md，落到当前目录的 kettle_pricing/ 子目录。",
+      "expected_output": "三法中位 ~€80-100 / 主力价 €80 / 三轨 SKU 涵盖 sub-€60 / €80 / €150 价位 / 最强 hero = no-subscription",
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+{
+  "category_id": "kvm-switch",
+  "category_label": "KVM 切换器",
+  "category_label_en": "KVM Switch",
+
+  "currency": "USD",
+  "exchange_to_usd": 1.0,
+  "default_market": ["US", "DE", "UK"],
+
+  "psychological_red_lines": {
+    "single_unit_hard_cap":     500,
+    "multi_unit_budget_anchor": 800,
+    "total_anger_zone":         1000
+  },
+
+  "price_points_for_simulation": [150, 250, 350, 500],
+  "price_point_labels": ["攻击价 $150", "主力价 $250", "标准价 $350", "上限价 $500"],
+
+  "price_bands": [
+    {"id": "A", "label": "sub-$200 (入门)",   "min": 0,    "max": 200,  "anchor_competitors": ["CKL HDMI Matrix", "UGreen KVM"]},
+    {"id": "B", "label": "$200-300 (中低)",    "min": 200,  "max": 300,  "anchor_competitors": ["Tesmart HDMI 2.0 4K"]},
+    {"id": "C", "label": "$300-450 (中价)",    "min": 300,  "max": 450,  "anchor_competitors": ["Level1Techs Optix 14"]},
+    {"id": "D", "label": "$450-700 (高端)",    "min": 450,  "max": 700,  "anchor_competitors": ["Black Box ServSwitch"]},
+    {"id": "E", "label": "$700+ (顶级)",       "min": 700,  "max": 99999,"anchor_competitors": ["Adder AdderView"]}
+  ],
+
+  "brand_price_per_unit_eur": {
+    "ckl":       180,
+    "ugreen":    150,
+    "tesmart":   260,
+    "level1techs": 350,
+    "level1":    350,
+    "optix":     350,
+    "blackbox":  500,
+    "iogear":    240,
+    "tripplite": 320,
+    "adder":     800,
+    "raritan":   650,
+    "aten":      280,
+    "startech":  300
+  },
+
+  "brand_keywords": {
+    "ckl":         ["CKL"],
+    "ugreen":      ["UGREEN","UGreen","Ugreen"],
+    "tesmart":     ["Tesmart","TESmart","TE-Smart"],
+    "level1techs": ["Level1Techs","Level1","L1T"],
+    "optix":       ["Optix"],
+    "blackbox":    ["Black Box","BlackBox"],
+    "iogear":      ["IOGEAR","IOgear"],
+    "tripplite":   ["Tripp Lite","TrippLite"],
+    "adder":       ["Adder","AdderView"],
+    "raritan":     ["Raritan"],
+    "aten":        ["ATEN","Aten"],
+    "startech":    ["StarTech","Startech"]
+  },
+
+  "spec_features": [
+    {"col": "max_resolution_4k",    "type": "binary",  "in_hedonic": true, "label": "支持 4K @ 60Hz"},
+    {"col": "n_ports",              "type": "numeric", "in_hedonic": true, "label": "端口数"},
+    {"col": "has_audio_routing",    "type": "binary",  "in_hedonic": true, "label": "音频独立路由"},
+    {"col": "has_edid_emulation",   "type": "binary",  "in_hedonic": true, "label": "EDID 仿真"},
+    {"col": "has_hotkey",           "type": "binary",  "in_hedonic": true, "label": "热键切换"},
+    {"col": "is_enterprise_brand",  "type": "binary",  "in_hedonic": true, "label": "企业级品牌"}
+  ],
+
+  "own_product_default_spec": {
+    "max_resolution_4k": 1,
+    "n_ports": 4,
+    "has_audio_routing": 1,
+    "has_edid_emulation": 1,
+    "has_hotkey": 1,
+    "is_enterprise_brand": 0,
+    "ppt_price_usd_per_unit": 250
+  },
+
+  "pain_themes": {
+    "edid_emulation_broken": {
+      "keywords": ["EDID","屏幕识别","分辨率丢失","resolution drop"],
+      "label_zh": "EDID 仿真失败"
+    },
+    "hotkey_unreliable": {
+      "keywords": ["hotkey","热键","快捷键","switch fail"],
+      "label_zh": "热键切换不灵"
+    },
+    "audio_routing_fail": {
+      "keywords": ["audio","音频","声卡","sound"],
+      "label_zh": "音频路由问题"
+    },
+    "usb_pass_through_lag": {
+      "keywords": ["USB","键鼠延迟","mouse lag","keyboard"],
+      "label_zh": "USB 透传延迟"
+    },
+    "build_quality_cheap": {
+      "keywords": ["plastic","build","cheap feel","scratch"],
+      "label_zh": "做工廉价"
+    },
+    "firmware_update_unavailable": {
+      "keywords": ["firmware","update","support EOL"],
+      "label_zh": "固件无更新"
+    },
+    "compatibility_gpu_specific": {
+      "keywords": ["NVIDIA","AMD","GPU","graphics card"],
+      "label_zh": "显卡兼容性"
+    },
+    "value_disappointment": {
+      "keywords": ["价格","overpriced","not worth","返货"],
+      "label_zh": "性价比失望"
+    },
+    "documentation_missing": {
+      "keywords": ["manual","documentation","unclear instruction"],
+      "label_zh": "文档缺失"
+    },
+    "warranty_too_short": {
+      "keywords": ["warranty","保修","RMA","返修"],
+      "label_zh": "保修期短"
+    }
+  },
+
+  "pain_to_solve_weight": {
+    "edid_emulation_broken":      0.07,
+    "hotkey_unreliable":          0.06,
+    "audio_routing_fail":         0.05,
+    "usb_pass_through_lag":       0.06,
+    "build_quality_cheap":        0.04,
+    "firmware_update_unavailable": 0.06,
+    "compatibility_gpu_specific": 0.05,
+    "value_disappointment":      -0.05,
+    "documentation_missing":      0.03,
+    "warranty_too_short":         0.04
+  },
+
+  "meshnode_solve": {
+    "edid_emulation_broken":      0.80,
+    "hotkey_unreliable":          0.70,
+    "audio_routing_fail":         0.90,
+    "usb_pass_through_lag":       0.60,
+    "build_quality_cheap":        0.70,
+    "firmware_update_unavailable": 0.90,
+    "compatibility_gpu_specific": 0.50,
+    "value_disappointment":       0.60,
+    "documentation_missing":      0.80,
+    "warranty_too_short":         1.00
+  },
+
+  "signals": {
+    "edid_pain_score":            {"beta": 1.30, "themes": ["edid_emulation_broken"]},
+    "hotkey_pain_score":          {"beta": 1.20, "themes": ["hotkey_unreliable"]},
+    "audio_pain_score":           {"beta": 1.10, "themes": ["audio_routing_fail"]},
+    "usb_lag_pain_score":         {"beta": 1.20, "themes": ["usb_pass_through_lag"]},
+    "build_quality_score":        {"beta": 0.70, "themes": ["build_quality_cheap"]},
+    "firmware_support_score":     {"beta": 0.90, "themes": ["firmware_update_unavailable"]},
+    "gpu_compat_score":           {"beta": 0.80, "themes": ["compatibility_gpu_specific"]},
+    "warranty_score":             {"beta": 0.70, "themes": ["warranty_too_short"]},
+    "value_positive_score":       {"beta": 0.50, "themes": []},
+    "price_complaint_score":      {"beta":-1.20, "themes": ["value_disappointment"]},
+    "discount_dependency_score":  {"beta":-0.80, "themes": []},
+    "enterprise_buyer_score":     {"beta": 1.00, "themes": []}
+  },
+
+  "base_logit": -2.40,
+  "price_elasticity": -1.2,
+  "anchor_node_eur_fallback": 250,
+
+  "sku_track_template": {
+    "attack": {
+      "label_zh": "攻击轨",
+      "price_relative_to_anchor": 0.65,
+      "pack_size": 1,
+      "target_segments": ["入门用户", "Tesmart 失望转投用户"],
+      "hero_message": "同价 Tesmart，更稳的 EDID + 2 年保修"
+    },
+    "core": {
+      "label_zh": "主力轨",
+      "price_relative_to_anchor": 1.00,
+      "pack_size": 1,
+      "target_segments": ["双系统开发者", "家庭工作站用户"],
+      "hero_message": "Level1Techs 的功能，主流价位"
+    },
+    "premium": {
+      "label_zh": "溢价轨",
+      "price_relative_to_anchor": 1.50,
+      "pack_size": 1,
+      "target_segments": ["专业视频工作站", "多机房 IT"],
+      "hero_message": "对位 Black Box，2/3 价位"
+    }
+  }
+}

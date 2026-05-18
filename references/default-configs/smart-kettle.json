@@ -1,0 +1,195 @@
+{
+  "category_id": "smart-kettle",
+  "category_label": "智能水壶",
+  "category_label_en": "Smart Kettle",
+
+  "currency": "EUR",
+  "exchange_to_usd": 1.08,
+  "default_market": ["DE", "FR", "UK"],
+
+  "psychological_red_lines": {
+    "single_unit_hard_cap":     200,
+    "multi_unit_budget_anchor": 250,
+    "total_anger_zone":         300
+  },
+
+  "price_points_for_simulation": [50, 80, 110, 150],
+  "price_point_labels": ["攻击价 €50", "主力价 €80", "标准价 €110", "上限价 €150"],
+
+  "price_bands": [
+    {"id": "A", "label": "sub-€60 (入门)",  "min": 0,   "max": 60,  "anchor_competitors": ["Russell Hobbs", "Tefal Quick Cup"]},
+    {"id": "B", "label": "€60-90 (中低)",   "min": 60,  "max": 90,  "anchor_competitors": ["Xiaomi MiJia"]},
+    {"id": "C", "label": "€90-130 (中价)",  "min": 90,  "max": 130, "anchor_competitors": ["Bosch Styline", "Philips Avance"]},
+    {"id": "D", "label": "€130-200 (高端)", "min": 130, "max": 200, "anchor_competitors": ["Smarter iKettle 3.0"]},
+    {"id": "E", "label": "€200+ (顶级)",    "min": 200, "max": 999, "anchor_competitors": ["Stagg EKG Pro"]}
+  ],
+
+  "brand_price_per_unit_eur": {
+    "smarter":       169,
+    "ikettle":       169,
+    "fellow":        199,
+    "stagg":         199,
+    "bosch":         115,
+    "philips":       105,
+    "tefal":         55,
+    "russell hobbs": 50,
+    "russell":       50,
+    "xiaomi":        70,
+    "mijia":         70,
+    "breville":      125,
+    "wmf":           135,
+    "krups":         95,
+    "delonghi":      135,
+    "morphy":        70
+  },
+
+  "brand_keywords": {
+    "smarter":       ["Smarter","iKettle"],
+    "ikettle":       ["iKettle"],
+    "fellow":        ["Fellow"],
+    "stagg":         ["Stagg","EKG Pro"],
+    "bosch":         ["Bosch"],
+    "philips":       ["Philips","Avance"],
+    "tefal":         ["Tefal","TEFAL"],
+    "russell":       ["Russell Hobbs","Russell"],
+    "xiaomi":        ["Xiaomi","小米","MiJia"],
+    "mijia":         ["MiJia","米家"],
+    "breville":      ["Breville"],
+    "wmf":           ["WMF"],
+    "krups":         ["Krups"],
+    "delonghi":      ["De'Longhi","DeLonghi","Delonghi"],
+    "morphy":        ["Morphy Richards","Morphy"]
+  },
+
+  "spec_features": [
+    {"col": "capacity_ml",          "type": "numeric", "in_hedonic": true, "label": "容量 ml"},
+    {"col": "power_watts",          "type": "numeric", "in_hedonic": true, "log": true, "label": "功率 W"},
+    {"col": "has_temp_control",     "type": "binary",  "in_hedonic": true, "label": "温度可调"},
+    {"col": "has_keep_warm",        "type": "binary",  "in_hedonic": true, "label": "保温功能"},
+    {"col": "has_app_control",      "type": "binary",  "in_hedonic": true, "label": "App 控制"},
+    {"col": "is_premium_brand",     "type": "binary",  "in_hedonic": true, "label": "高端品牌"}
+  ],
+
+  "own_product_default_spec": {
+    "capacity_ml": 1700,
+    "power_watts": 2200,
+    "has_temp_control": 1,
+    "has_keep_warm": 1,
+    "has_app_control": 0,
+    "is_premium_brand": 0,
+    "ppt_price_eur_per_unit": 80
+  },
+
+  "pain_themes": {
+    "scaling_buildup": {
+      "keywords": ["scale","水垢","limescale","calc"],
+      "label_zh": "水垢堆积"
+    },
+    "auto_off_unreliable": {
+      "keywords": ["auto off","自动断电","switch off","over-boil"],
+      "label_zh": "自动断电不灵"
+    },
+    "lid_seal_leak": {
+      "keywords": ["lid","盖","seal","漏水","leak"],
+      "label_zh": "壶盖漏水"
+    },
+    "noisy_operation": {
+      "keywords": ["loud","noise","噪音","whistle"],
+      "label_zh": "运行噪音大"
+    },
+    "slow_boil": {
+      "keywords": ["slow","慢","take long","boiling time"],
+      "label_zh": "烧水慢"
+    },
+    "handle_burn_risk": {
+      "keywords": ["handle","把手","hot","烫手","burn"],
+      "label_zh": "把手烫手"
+    },
+    "app_unreliable": {
+      "keywords": ["app","连接","WiFi","crash","bluetooth"],
+      "label_zh": "App 连接不稳"
+    },
+    "temp_inaccurate": {
+      "keywords": ["temperature","温度","inaccurate","off by"],
+      "label_zh": "温控不准"
+    },
+    "subscription_paywall": {
+      "keywords": ["subscription","订阅","paywall"],
+      "label_zh": "订阅墙（App 功能）"
+    },
+    "value_disappointment": {
+      "keywords": ["overpriced","not worth","cheap","失望","退货"],
+      "label_zh": "性价比失望"
+    }
+  },
+
+  "pain_to_solve_weight": {
+    "scaling_buildup":      0.04,
+    "auto_off_unreliable":  0.05,
+    "lid_seal_leak":        0.05,
+    "noisy_operation":      0.03,
+    "slow_boil":            0.04,
+    "handle_burn_risk":     0.05,
+    "app_unreliable":       0.06,
+    "temp_inaccurate":      0.06,
+    "subscription_paywall": 0.07,
+    "value_disappointment": -0.05
+  },
+
+  "meshnode_solve": {
+    "scaling_buildup":      0.50,
+    "auto_off_unreliable":  0.80,
+    "lid_seal_leak":        0.60,
+    "noisy_operation":      0.70,
+    "slow_boil":            0.80,
+    "handle_burn_risk":     0.70,
+    "app_unreliable":       0.90,
+    "temp_inaccurate":      0.85,
+    "subscription_paywall": 1.00,
+    "value_disappointment": 0.60
+  },
+
+  "signals": {
+    "scaling_pain_score":         {"beta": 0.80, "themes": ["scaling_buildup"]},
+    "safety_pain_score":          {"beta": 1.30, "themes": ["auto_off_unreliable","handle_burn_risk"]},
+    "leak_pain_score":            {"beta": 1.10, "themes": ["lid_seal_leak"]},
+    "noise_pain_score":           {"beta": 0.50, "themes": ["noisy_operation"]},
+    "speed_pain_score":           {"beta": 0.60, "themes": ["slow_boil"]},
+    "app_reliability_score":      {"beta": 1.00, "themes": ["app_unreliable"]},
+    "temp_accuracy_score":        {"beta": 1.20, "themes": ["temp_inaccurate"]},
+    "subscription_aversion_score":{"beta": 1.40, "themes": ["subscription_paywall"]},
+    "value_positive_score":       {"beta": 0.50, "themes": []},
+    "price_complaint_score":      {"beta":-1.20, "themes": ["value_disappointment"]},
+    "discount_dependency_score":  {"beta":-0.80, "themes": []},
+    "tea_coffee_enthusiast_score":{"beta": 1.10, "themes": []},
+    "smart_home_user_score":      {"beta": 0.90, "themes": []}
+  },
+
+  "base_logit": -2.30,
+  "price_elasticity": -1.4,
+  "anchor_node_eur_fallback": 80,
+
+  "sku_track_template": {
+    "attack": {
+      "label_zh": "攻击轨",
+      "price_relative_to_anchor": 0.63,
+      "pack_size": 1,
+      "target_segments": ["入门用户", "Tefal 升级用户"],
+      "hero_message": "Bosch 品质 + Russell Hobbs 价格"
+    },
+    "core": {
+      "label_zh": "主力轨",
+      "price_relative_to_anchor": 1.00,
+      "pack_size": 1,
+      "target_segments": ["茶咖爱好者", "智能家居用户"],
+      "hero_message": "温控 + 保温 + App，不收订阅"
+    },
+    "premium": {
+      "label_zh": "溢价轨",
+      "price_relative_to_anchor": 1.88,
+      "pack_size": 1,
+      "target_segments": ["精品茶 / 第三波咖啡爱好者"],
+      "hero_message": "对位 Fellow Stagg 2/3 价位"
+    }
+  }
+}

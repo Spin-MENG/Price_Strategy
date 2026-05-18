@@ -1,0 +1,218 @@
+{
+  "category_id": "wifi-mesh-router",
+  "category_label": "WiFi Mesh 路由器",
+  "category_label_en": "WiFi Mesh Router",
+
+  "currency": "EUR",
+  "exchange_to_usd": 1.08,
+  "default_market": ["DE", "FR", "ES", "IT", "UK"],
+
+  "psychological_red_lines": {
+    "single_unit_hard_cap":     100,
+    "multi_unit_budget_anchor": 400,
+    "total_anger_zone":         500,
+    "external_anchor_note":     "外部用户口头锚: 'switched to 75€ alternative' 重复出现"
+  },
+
+  "price_points_for_simulation": [65, 73, 80, 90],
+  "price_point_labels": ["攻击价 €65", "主力价 €73", "标准价 €80", "上限价 €90"],
+
+  "price_bands": [
+    {"id": "A", "label": "sub-€90 (入门)",  "min": 0,   "max": 90,  "anchor_competitors": ["Deco BE25", "eero 7"]},
+    {"id": "B", "label": "€90-150 (中低)",   "min": 90,  "max": 150, "anchor_competitors": ["Devolo Mesh 2"]},
+    {"id": "C", "label": "€150-220 (中价)",  "min": 150, "max": 220, "anchor_competitors": ["AVM FRITZ Repeater 6000", "Nest Wifi Pro"]},
+    {"id": "D", "label": "€220-330 (高端)",  "min": 220, "max": 330, "anchor_competitors": ["Orbi 370", "ASUS BT8"]},
+    {"id": "E", "label": "€330+ (顶级)",     "min": 330, "max": 9999,"anchor_competitors": ["Linksys Velop Pro 7"]}
+  ],
+
+  "brand_price_per_unit_eur": {
+    "tp-link": 65, "deco": 65, "archer": 65,
+    "tenda": 55,
+    "amazon": 80, "eero": 80,
+    "google": 153, "nest": 153,
+    "avm": 179, "fritz": 179,
+    "devolo": 105,
+    "netgear": 217, "orbi": 217, "nighthawk": 199,
+    "asus": 225, "zenwifi": 225, "aimesh": 225,
+    "ubiquiti": 250, "unifi": 250,
+    "linksys": 333, "velop": 333,
+    "huawei": 120, "xiaomi": 70
+  },
+
+  "brand_keywords": {
+    "tp-link":  ["TP-Link","TPlink","tp-link"],
+    "deco":     ["Deco","deco","DECO"],
+    "archer":   ["Archer"],
+    "tenda":    ["Tenda","tenda"],
+    "eero":     ["eero","Eero","EERO"],
+    "google":   ["Google Nest","Nest Wifi","NestWifi"],
+    "nest":     ["Nest Wifi","Nest wifi","Nest Wi-Fi"],
+    "avm":      ["AVM"],
+    "fritz":    ["FRITZ","Fritz"],
+    "devolo":   ["Devolo","devolo"],
+    "netgear":  ["NETGEAR","Netgear","netgear"],
+    "orbi":     ["Orbi","ORBI"],
+    "nighthawk":["Nighthawk"],
+    "asus":     ["ASUS","Asus","asus"],
+    "zenwifi":  ["ZenWiFi","Zenwifi"],
+    "ubiquiti": ["Ubiquiti","UBiQuiti"],
+    "unifi":    ["UniFi","Unifi"],
+    "linksys":  ["Linksys"],
+    "velop":    ["Velop"],
+    "huawei":   ["Huawei","华为"],
+    "xiaomi":   ["Xiaomi","小米"]
+  },
+
+  "spec_features": [
+    {"col": "wifi_gen",         "type": "ordinal", "in_hedonic": true, "label": "WiFi 代数"},
+    {"col": "phy_total_mbps",   "type": "numeric", "in_hedonic": true, "log": true, "label": "总速率 Mbps"},
+    {"col": "max_port_gbe",     "type": "numeric", "in_hedonic": true, "label": "网口速率 GbE"},
+    {"col": "coverage_sqm",     "type": "numeric", "in_hedonic": true, "log": true, "label": "覆盖面积 sqm"},
+    {"col": "has_6ghz",         "type": "binary",  "in_hedonic": true, "label": "是否 6 GHz"},
+    {"col": "is_premium_brand", "type": "binary",  "in_hedonic": true, "label": "高端品牌"}
+  ],
+
+  "own_product_default_spec": {
+    "wifi_gen": 7.0,
+    "phy_total_mbps": 3570,
+    "max_port_gbe": 2.5,
+    "coverage_sqm": 604,
+    "has_6ghz": 0,
+    "is_premium_brand": 0,
+    "ram_mb_num": 512,
+    "n_bands": 2,
+    "ppt_price_eur_per_unit": 73
+  },
+
+  "pain_themes": {
+    "stability_handoff": {
+      "keywords": ["稳定性","断连","掉线","reboot","重启","随机","Mesh全链路","Mesh/卫星","回程","backhaul","网络连接稳定","网络设备配置与稳定"],
+      "label_zh": "Mesh 节点稳定性 / 回程"
+    },
+    "coverage_dead_zone": {
+      "keywords": ["覆盖","穿透","盲区","信号","WiFi覆盖","全屋覆盖","WiFi组网覆盖","WiFi全屋"],
+      "label_zh": "WiFi 覆盖盲区"
+    },
+    "subscription_paywall": {
+      "keywords": ["订阅","subscription","Abo","paywall","付费","软件配置与管理","软件配置与服务"],
+      "label_zh": "订阅墙 / 付费功能"
+    },
+    "firmware_lifecycle": {
+      "keywords": ["固件","firmware","更新","EOL","停止安全","固件版本","固件兼容性"],
+      "label_zh": "固件长期支持"
+    },
+    "setup_app_complex": {
+      "keywords": ["初始配置","设置门槛","安装","配对","App","管理体验","设备初始"],
+      "label_zh": "安装配置门槛"
+    },
+    "value_disappointment": {
+      "keywords": ["价格","性价比","心理预期","高价","硬件规格与价值","付费升级价值","失望","退款","退货"],
+      "label_zh": "性价比 / 退货失望"
+    },
+    "throughput_wired_bottleneck": {
+      "keywords": ["千兆","CPU 限速","速率瓶颈","有线","宽带","throughput","Bufferbloat","网速","实际网速"],
+      "label_zh": "有线 / 千兆瓶颈"
+    },
+    "smart_iot_drop": {
+      "keywords": ["智能家居","IoT","Zigbee","Matter"],
+      "label_zh": "IoT 兼容性"
+    },
+    "pro_control_missing": {
+      "keywords": ["Pro options","高级设置","VLAN","QoS","脚本","DNS与拓扑","DIY硬件"],
+      "label_zh": "Pro 控制 / 高级设置"
+    },
+    "vendor_lockin_extension": {
+      "keywords": ["同牌加购","兼容受阻","扩展受限","另买节点","Mesh节点扩展"],
+      "label_zh": "品牌锁定 / 加节点受阻"
+    },
+    "vpn_cgnat_block": {
+      "keywords": ["VPN","WireGuard","Tailscale","CGNAT","公网"],
+      "label_zh": "VPN / CGNAT"
+    },
+    "competitor_specific_orbi": {"keywords": ["Orbi"], "label_zh": "Orbi 专属问题"},
+    "own_brand_specific": {
+      "keywords": ["GL.iNet","Mudi","Flint","Beryl","Slate"],
+      "label_zh": "GL.iNet 自身问题（防守）"
+    }
+  },
+
+  "pain_to_solve_weight": {
+    "stability_handoff":          0.06,
+    "coverage_dead_zone":         0.05,
+    "subscription_paywall":       0.09,
+    "firmware_lifecycle":         0.06,
+    "setup_app_complex":          0.03,
+    "value_disappointment":      -0.06,
+    "throughput_wired_bottleneck": 0.06,
+    "smart_iot_drop":             0.03,
+    "pro_control_missing":        0.05,
+    "vendor_lockin_extension":    0.04,
+    "vpn_cgnat_block":            0.05,
+    "competitor_specific_orbi":   0.04,
+    "own_brand_specific":        -0.10
+  },
+
+  "meshnode_solve": {
+    "stability_handoff":          0.70,
+    "coverage_dead_zone":         0.60,
+    "subscription_paywall":       1.00,
+    "firmware_lifecycle":         0.90,
+    "setup_app_complex":          0.40,
+    "value_disappointment":       0.80,
+    "throughput_wired_bottleneck": 0.50,
+    "smart_iot_drop":             0.30,
+    "pro_control_missing":        1.00,
+    "vendor_lockin_extension":    0.80,
+    "vpn_cgnat_block":            1.00,
+    "competitor_specific_orbi":   0.30,
+    "own_brand_specific":        -0.50
+  },
+
+  "signals": {
+    "coverage_pain_score":        {"beta": 1.20, "themes": ["coverage_dead_zone"]},
+    "stability_pain_score":       {"beta": 1.40, "themes": ["stability_handoff"]},
+    "subscription_aversion_score":{"beta": 1.60, "themes": ["subscription_paywall"]},
+    "wireless_backhaul_failure_score": {"beta": 1.30, "themes": ["stability_handoff"]},
+    "defection_intent_score":     {"beta": 1.50, "themes": ["value_disappointment"]},
+    "no_subscription_value_score":{"beta": 0.90, "themes": ["subscription_paywall"]},
+    "pro_control_score":          {"beta": 0.80, "themes": ["pro_control_missing"]},
+    "vpn_usecase_score":          {"beta": 1.00, "themes": ["vpn_cgnat_block"]},
+    "glinet_lockin_score":        {"beta": 1.50, "themes": []},
+    "openwrt_control_score":      {"beta": 1.20, "themes": []},
+    "iot_pain_score":             {"beta": 0.70, "themes": ["smart_iot_drop"]},
+    "setup_friction_score":       {"beta": 0.30, "themes": ["setup_app_complex"]},
+    "brand_lockin_score":         {"beta":-0.40, "themes": []},
+    "value_positive_score":       {"beta": 0.50, "themes": []},
+    "price_complaint_score":      {"beta":-1.20, "themes": ["value_disappointment"]},
+    "discount_dependency_score":  {"beta":-0.80, "themes": []},
+    "competitor_substitution_score": {"beta":-0.30, "themes": []}
+  },
+
+  "base_logit": -2.20,
+  "price_elasticity": -1.5,
+  "anchor_node_eur_fallback": 68,
+
+  "sku_track_template": {
+    "attack": {
+      "label_zh": "攻击轨",
+      "price_relative_to_anchor": 0.89,
+      "pack_size": 3,
+      "target_segments": ["品牌固件失望转投派", "入门成效失望退货派", "同牌加购受阻派"],
+      "hero_message": "同价 Deco BE25，更稳，30 天无理由退"
+    },
+    "core": {
+      "label_zh": "主力轨",
+      "price_relative_to_anchor": 1.07,
+      "pack_size": 1,
+      "target_segments": ["家庭网络性能 + 安全党", "资深 IT 玩家", "网络故障排查派"],
+      "hero_message": "3 年使用成本 €285，比 eero 省 €257"
+    },
+    "premium": {
+      "label_zh": "溢价轨",
+      "price_relative_to_anchor": 1.32,
+      "pack_size": 1,
+      "target_segments": ["多网络安全 / VPN 进阶", "商旅 + VPN 用户", "Pro 玩家"],
+      "hero_message": "FRITZ €537、Nest €459 都做不到的有线+无线双回程 mesh，约半价就能拥有"
+    }
+  }
+}

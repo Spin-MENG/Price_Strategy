@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MeshNode 定价综合报告 v1 · 数据驱动的价格-缺口决策</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal-deep:#274753; --teal:#297270; --teal-mid:#299d8f; --sage:#8ab07c;
+  --gold:#e7c66b; --orange:#f3a361; --coral:#e66d50;
+  --blue:#297270; --blue-light:#d4eeeb; --blue-mid:#299d8f;
+  --emerald:#299d8f; --emerald-bg:#dff0ed;
+  --amber:#f3a361; --amber-bg:#fef0e0;
+  --red:#e66d50; --red-bg:#fce8e3;
+  --slate:#274753; --slate-2:#2f5a5e; --muted:#5e8a87; --muted-2:#8db5b0;
+  --border:#d8e5e2; --border-2:#b8cdc8; --bg:#f4f7f5; --card:#FFFFFF;
+  --radius:14px; --radius-sm:8px;
+  --shadow-sm:0 1px 3px rgba(39,71,83,0.06), 0 1px 2px rgba(39,71,83,0.04);
+  --shadow:0 4px 16px rgba(39,71,83,0.08), 0 1px 4px rgba(39,71,83,0.04);
+  --shadow-lg:0 12px 40px rgba(39,71,83,0.12);
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans','Noto Sans SC','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+  background:var(--bg); color:var(--slate); line-height:1.65; -webkit-font-smoothing:antialiased; }
+.container { max-width:1160px; margin:0 auto; padding:28px 20px 48px; }
+@keyframes slideUp { from{opacity:0; transform:translateY(20px)} to{opacity:1; transform:translateY(0)} }
+
+.report-header { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:0;
+  margin-bottom:24px; overflow:hidden; display:grid; grid-template-columns:6px 1fr; animation:slideUp 0.5s ease both; }
+.header-accent { background:linear-gradient(180deg, var(--teal-deep) 0%, var(--teal) 100%); }
+.header-body { padding:40px 44px 36px; }
+.header-eyebrow { display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+.header-badge { display:inline-block; background:var(--blue-light); color:var(--blue); font-size:10px;
+  font-weight:700; letter-spacing:1.8px; text-transform:uppercase; padding:3px 10px; border-radius:20px; }
+.header-body h1 { font-size:28px; font-weight:800; color:var(--slate); line-height:1.25; letter-spacing:-0.5px; margin-bottom:24px; }
+.header-meta { display:grid; grid-template-columns:repeat(4, auto); gap:0; width:fit-content;
+  border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; }
+.meta-cell { padding:10px 20px; border-right:1px solid var(--border); }
+.meta-cell:last-child { border-right:none; }
+.meta-label { font-size:10px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--muted-2); margin-bottom:3px; }
+.meta-value { font-size:13px; font-weight:600; color:var(--slate-2); }
+
+.section { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
+  padding:36px 40px; margin-bottom:20px; border-top:3px solid transparent; animation:slideUp 0.5s ease both; position:relative; }
+.section:nth-child(2) { animation-delay:0.05s; border-top-color:var(--teal-deep); }
+.section:nth-child(3) { animation-delay:0.10s; border-top-color:var(--teal); }
+.section:nth-child(4) { animation-delay:0.15s; border-top-color:var(--teal-mid); }
+.section:nth-child(5) { animation-delay:0.20s; border-top-color:var(--sage); }
+.section:nth-child(6) { animation-delay:0.25s; border-top-color:var(--gold); }
+.section:nth-child(7) { animation-delay:0.30s; border-top-color:var(--orange); }
+.section:nth-child(8) { animation-delay:0.35s; border-top-color:var(--coral); }
+
+.section-label { display:inline-flex; align-items:center; gap:6px; font-size:10px; font-weight:700;
+  color:var(--blue); text-transform:uppercase; letter-spacing:2px; margin-bottom:6px; }
+.section-label::before { content:''; width:12px; height:2px; background:currentColor; border-radius:2px; }
+.section h2 { font-size:22px; font-weight:800; color:var(--slate); letter-spacing:-0.4px; margin-bottom:8px; line-height:1.25; }
+.section .desc { font-size:14px; color:var(--muted); margin-bottom:28px; max-width:820px; line-height:1.75; }
+
+.ach-section-title { font-size:15px; font-weight:700; color:var(--slate); margin-bottom:3px; letter-spacing:-0.2px; }
+.ach-section-hint { font-size:12px; color:var(--muted-2); }
+
+.ad-kpi-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; margin:20px 0 24px; }
+.ad-kpi-card { border-radius:var(--radius-sm); padding:22px 18px 18px; text-align:center;
+  border:1.5px solid var(--border); background:var(--card); transition:box-shadow 0.2s, transform 0.2s; }
+.ad-kpi-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+.ad-kpi-label { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+.ad-kpi-value { font-size:28px; font-weight:800; line-height:1; letter-spacing:-1px; color:var(--slate); margin-bottom:4px; }
+.ad-kpi-value .unit { font-size:16px; font-weight:700; }
+.ad-kpi-sub { font-size:11px; color:var(--muted-2); margin-top:6px; }
+.ad-kpi-card.highlight { background:linear-gradient(160deg, #eaf5f0 0%, #dff0ed 100%); border-color:var(--teal-mid); }
+.ad-kpi-card.highlight .ad-kpi-value { color:var(--teal-deep); }
+.ad-kpi-card.highlight .ad-kpi-label { color:var(--teal); }
+.ad-kpi-card.warn { background:var(--amber-bg); border-color:var(--gold); }
+.ad-kpi-card.warn .ad-kpi-value { color:var(--coral); }
+
+.insight { background:linear-gradient(135deg, #eaf5f0 0%, #dff0ed 100%); border-left:3px solid var(--teal-mid);
+  border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:16px 20px; margin-top:24px; font-size:14px;
+  color:var(--slate-2); line-height:1.75; }
+.insight strong { color:var(--teal); }
+.insight.warning { background:linear-gradient(135deg, #fef8f0 0%, #fef0e0 100%); border-left-color:var(--orange); }
+.insight.warning strong { color:var(--orange); }
+
+.chart-box { width:100%; height:380px; margin:20px 0; }
+.divider { height:1px; background:linear-gradient(90deg, transparent, var(--border) 15%, var(--border) 85%, transparent); margin:32px 0; }
+
+.report-footer { text-align:center; padding:24px; font-size:12px; color:var(--muted-2);
+  border-top:1px solid var(--border); margin-top:8px; }
+
+.asin-tbl, .dsp-tbl { width:100%; border-collapse:collapse; font-size:13px; }
+.dsp-tbl { margin-top:16px; }
+.asin-tbl th, .dsp-tbl th { text-align:right; padding:10px 10px; font-size:10px; font-weight:700;
+  letter-spacing:0.8px; text-transform:uppercase; color:var(--muted-2); border-bottom:2px solid var(--border); }
+.asin-tbl td { text-align:right; padding:12px 10px; }
+.dsp-tbl td { text-align:right; padding:10px 10px; }
+.asin-tbl tbody tr, .dsp-tbl tbody tr { border-bottom:1px solid var(--border); }
+.asin-tbl tbody tr:hover, .dsp-tbl tbody tr:hover { background:#f0f5f3; }
+.asin-tbl .col-left, .dsp-tbl .col-left { text-align:left; }
+.asin-tbl .col-accent { color:var(--teal-deep); font-weight:700; }
+.dsp-tbl .total td { background:var(--blue-light); font-weight:700; color:var(--teal-deep); }
+
+.summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:20px; }
+.summary-col { background:#f7faf8; border:1px solid var(--border); border-radius:var(--radius-sm); padding:26px 28px; }
+.summary-col h4 { font-size:11px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--teal); margin-bottom:12px; }
+.summary-col ol { list-style:none; counter-reset:sum; margin:0; padding:0; }
+.summary-col ol li { counter-increment:sum; position:relative; padding:12px 0 12px 40px;
+  border-bottom:1px dashed var(--border); font-size:14px; color:var(--slate); line-height:1.6; }
+.summary-col ol li:last-child { border-bottom:none; }
+.summary-col ol li::before { content:counter(sum); position:absolute; left:0; top:11px; width:26px; height:26px;
+  background:var(--teal-deep); color:#fff; font-weight:800; font-size:12px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; }
+.summary-col.actions ol li::before { background:var(--orange); }
+.summary-col li strong { color:var(--teal-deep); font-weight:700; }
+
+.glossary { margin-top:28px; padding:20px 24px; background:var(--bg); border-radius:var(--radius-sm); border:1px solid var(--border); }
+.glossary h4 { font-size:10px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--teal); margin-bottom:14px; }
+.glossary dl { display:grid; grid-template-columns:auto 1fr; gap:10px 20px; font-size:13px; }
+.glossary dt { font-weight:700; color:var(--slate); }
+.glossary dd { color:var(--muted); margin:0; }
+
+.sku-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin:20px 0; }
+.sku-card { padding:24px 22px; border:1.5px solid var(--border); border-radius:var(--radius-sm);
+  background:var(--card); position:relative; }
+.sku-card.attack { border-top:4px solid var(--orange); }
+.sku-card.core { border-top:4px solid var(--teal-mid); background:linear-gradient(180deg, #eaf5f0 0%, #fff 35%); }
+.sku-card.premium { border-top:4px solid var(--teal-deep); }
+.sku-card h5 { font-size:12px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+.sku-card .sku-label { font-size:16px; font-weight:700; color:var(--slate); margin-bottom:10px; }
+.sku-card .sku-price { font-size:30px; font-weight:800; color:var(--teal-deep); letter-spacing:-1px; margin-bottom:4px; }
+.sku-card .sku-price .unit { font-size:13px; color:var(--muted); font-weight:600; }
+.sku-card .sku-meta { font-size:12px; color:var(--muted); margin-bottom:14px; }
+.sku-card .sku-msg { font-size:13px; color:var(--slate); padding:12px 14px; background:rgba(41,114,112,0.05);
+  border-left:3px solid var(--teal-mid); border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:12px; line-height:1.55; }
+.sku-card .sku-target { font-size:11px; color:var(--muted-2); line-height:1.6; }
+.sku-card .sku-buy { display:inline-block; margin-top:8px; padding:3px 10px; font-size:12px; font-weight:700;
+  border-radius:20px; background:var(--emerald-bg); color:var(--teal-deep); }
+
+@media (max-width:900px) {
+  .header-body { padding:28px 24px; }
+  .header-meta { grid-template-columns:1fr 1fr; }
+  .section { padding:24px 20px; }
+  .ad-kpi-grid { grid-template-columns:1fr 1fr; }
+  .summary-grid { grid-template-columns:1fr; }
+  .sku-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="report-header">
+  <div class="header-accent"></div>
+  <div class="header-body">
+    <div class="header-eyebrow"><span class="header-badge">GL.iNet · 定价综合报告</span></div>
+    <h1>MeshNode 定价综合报告 v1 · 数据驱动的价格-缺口决策</h1>
+    <div class="header-meta">
+      <div class="meta-cell"><div class="meta-label">报告期</div><div class="meta-value">2026-05-18</div></div>
+      <div class="meta-cell"><div class="meta-label">数据源</div><div class="meta-value">12 款竞品 · Reddit + 竞品评论</div></div>
+      <div class="meta-cell"><div class="meta-label">货币</div><div class="meta-value">EUR（欧元）· DE 市场</div></div>
+      <div class="meta-cell"><div class="meta-label">撰写</div><div class="meta-value">Data Team</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="section">
+  <div class="section-label">第一部分</div>
+  <h2>一页全景 · 主力定价 €73/节点，市场购买意愿 30.5%</h2>
+  <div class="desc">
+    本品 MeshNode（WiFi 7 双频 · 2.5GbE · 604 sqm）在 DE 市场建议主力定价 <strong>€73/节点</strong>。
+    四种独立方法（规格驱动 / 性价比前沿 / 痛点加权 / 市场缺口）交叉验证，给出基准价区间
+    <strong>€194-€220/3-pack</strong>（中位 €205），约 €68/节点。
+    最大市场空缺在 <strong>C 价位段（€150-220）</strong>的 Mesh 稳定性 + 覆盖盲区，本品规格能正面进攻。
+  </div>
+
+  <div class="ad-kpi-grid">
+    <div class="ad-kpi-card highlight">
+      <div class="ad-kpi-label">主力定价</div>
+      <div class="ad-kpi-value">€73<span class="unit">/节点</span></div>
+      <div class="ad-kpi-sub">PPT 价 · 主力轨</div>
+    </div>
+    <div class="ad-kpi-card">
+      <div class="ad-kpi-label">市场购买意愿率</div>
+      <div class="ad-kpi-value">30.5<span class="unit">%</span></div>
+      <div class="ad-kpi-sub">@ €73 价位 · 全市场加权</div>
+    </div>
+    <div class="ad-kpi-card">
+      <div class="ad-kpi-label">价格敏感度</div>
+      <div class="ad-kpi-value">低</div>
+      <div class="ad-kpi-sub">€73 → €90 只跌 5.8 pp</div>
+    </div>
+    <div class="ad-kpi-card warn">
+      <div class="ad-kpi-label">最大市场空缺</div>
+      <div class="ad-kpi-value">C 段</div>
+      <div class="ad-kpi-sub">€150-220 Mesh 稳定性 / 覆盖</div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <strong>核心三句：</strong>
+    一、四种方法独立得到 €194-€220/3-pack 区间（中位 €205），€73/节点（即 €219/3-pack）处于区间下沿、对用户友好。
+    二、即便价格涨到 €90，市场购买意愿率仅从 30.5% 滑落到 24.7%（5.8 pp），证明该规格在 DE 市场<strong>定价空间充足</strong>。
+    三、C 段（€150-220）的 Mesh 稳定性 + 覆盖盲区是<strong>最大未满足缺口</strong>，本品按攻击轨 / 主力轨 / 溢价轨三轨上市可形成包夹。
+  </div>
+
+  <div class="insight warning">
+    <strong>需注意：</strong>本报告参数为基于现有竞品评论 + Reddit 讨论的<strong>基准估计</strong>，购买意愿率是<strong>结构化推算</strong>而非真实成交率；
+    需上市后用真实销售数据反推校准（埋点：attach rate / 单 SKU 销量）。
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">第二部分 · 分析一</div>
+  <h2>竞品对位 · 规格能撑住多少钱（三种方法独立验证）</h2>
+  <div class="desc">
+    用三种独立方法估算本品的合理定价：规格驱动（按竞品 spec 拟合反推）、性价比前沿（在性能-价格座标上找位置）、
+    痛点加权（基于用户痛点解决能力反推溢价）。三种方法独立计算后，取中位作为综合基准价。
+  </div>
+
+  <div class="ad-kpi-grid">
+    <div class="ad-kpi-card">
+      <div class="ad-kpi-label">方法 1 · 规格驱动</div>
+      <div class="ad-kpi-value">€194<span class="unit">/3-pack</span></div>
+      <div class="ad-kpi-sub">拟合优度 94.6% · n=12</div>
+    </div>
+    <div class="ad-kpi-card">
+      <div class="ad-kpi-label">方法 2 · 性价比前沿</div>
+      <div class="ad-kpi-value">€220<span class="unit">/3-pack</span></div>
+      <div class="ad-kpi-sub">对位 TP-Link Deco BE25</div>
+    </div>
+    <div class="ad-kpi-card">
+      <div class="ad-kpi-label">方法 3 · 痛点加权</div>
+      <div class="ad-kpi-value">€200<span class="unit">/3-pack</span></div>
+      <div class="ad-kpi-sub">竞品 +3.2%</div>
+    </div>
+    <div class="ad-kpi-card highlight">
+      <div class="ad-kpi-label">三法中位（基准）</div>
+      <div class="ad-kpi-value">€205<span class="unit">/3-pack</span></div>
+      <div class="ad-kpi-sub">≈ €68/节点</div>
+    </div>
+  </div>
+
+  <p class="ach-section-title">三种方法的定价对比</p>
+  <p class="ach-section-hint">三条独立路径，结果在 €194-€220 窄区间收敛，证明基准价稳健</p>
+  <div class="chart-box" id="chart-three-methods" style="height:300px"></div>
+
+  <div class="divider"></div>
+
+  <p class="ach-section-title">方法一详情 · 哪些规格最影响价格</p>
+  <p class="ach-section-hint">规格驱动定价模型的权重系数（数值越大 = 涨价拉力越强；负值 = 在样本里被打折）</p>
+  <div class="chart-box" id="chart-spec-impact" style="height:280px"></div>
+
+  <div class="divider"></div>
+
+  <p class="ach-section-title">方法二详情 · 性能-价格座标图</p>
+  <p class="ach-section-hint">每个点是一款竞品 · 橘色 = 性价比前沿（同性能档最低价）· 蓝色 = MeshNode 落点</p>
+  <div class="chart-box" id="chart-perf-price-map" style="height:340px"></div>
+
+  <div class="divider"></div>
+
+  <p class="ach-section-title">方法三详情 · 用户最常抱怨的 15 件事</p>
+  <p class="ach-section-hint">每条抱怨在 €205 基准价上贡献的涨价/降价拉力百分比（正 = 本品能多收，负 = 本品要少收）</p>
+  <div class="chart-box" id="chart-top-pains" style="height:380px"></div>
+
+  <p class="ach-section-title" style="margin-top:24px">用户痛点贡献明细 · 前 5</p>
+  <table class="asin-tbl" style="margin-top:8px">
+    <thead><tr>
+      <th class="col-left">来源</th><th class="col-left">痛点 cluster</th><th>占比 %</th>
+      <th>满意度</th><th>调整 %</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td class="col-left">Competitor</td>
+        <td class="col-left">WiFi覆盖与连接稳定短板</td>
+        <td>21.5%</td>
+        <td>-1.17</td>
+        <td class="col-accent">+0.76%</td>
+      </tr>
+      <tr>
+        <td class="col-left">Competitor</td>
+        <td class="col-left">付费升级价值与售后落差</td>
+        <td>6.9%</td>
+        <td>-1.52</td>
+        <td class="col-accent">+0.57%</td>
+      </tr>
+      <tr>
+        <td class="col-left">Competitor</td>
+        <td class="col-left">软件配置与管理体验短板</td>
+        <td>12.6%</td>
+        <td>-1.34</td>
+        <td class="col-accent">+0.51%</td>
+      </tr>
+      <tr>
+        <td class="col-left">Competitor</td>
+        <td class="col-left">Mesh全链路连接稳定性短板</td>
+        <td>8.1%</td>
+        <td>-1.64</td>
+        <td class="col-accent">+0.48%</td>
+      </tr>
+      <tr>
+        <td class="col-left">Reddit</td>
+        <td class="col-left">GL.iNet产品软硬件与售后综合痛点</td>
+        <td>10.2%</td>
+        <td>-1.13</td>
+        <td class="col-accent">-0.46%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="insight">
+    <strong>结论：</strong>三法收敛在 €194-€220 窄区间，€73/节点（即 €219/3-pack）紧贴下沿，
+    把价值让给用户做<strong>客户口碑壁垒</strong>。规格驱动里"总速率"和"高端品牌定位"是最大涨价拉力；
+    痛点加权里"稳定性 / 覆盖 / 订阅墙"是本品能多收钱的主要论据。
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">第三部分 · 分析二</div>
+  <h2>谁会买 · 用户分群的购买信号画像</h2>
+  <div class="desc">
+    把竞品评论 + Reddit 讨论里的用户聚类成 <strong>18 个分群</strong>，对每个分群抽取
+    17 个购买信号（如"覆盖痛点强度"、"订阅厌恶强度"、"GL.iNet 品牌锁定意愿"等），
+    再用概率模型估算每个分群在不同价位的购买意愿率。
+  </div>
+
+  <p class="ach-section-title">最大的 5 个分群 · 主力价 €73 下的购买意愿率</p>
+  <p class="ach-section-hint">"分群占比" = 数据源里该群体的样本份额 · "购买意愿率" = 该群体在 €73 价位下点单的概率（结构化推算）</p>
+  <table class="asin-tbl" style="margin-top:8px">
+    <thead><tr>
+      <th class="col-left">分群</th><th>样本数</th><th>分群占比</th><th>购买意愿率 @€73</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td class="col-left">[Reddit] 家庭网络性能与安全派</td>
+        <td>428</td>
+        <td>18.2%</td>
+        <td class="col-accent">25.3%</td>
+      </tr>
+      <tr>
+        <td class="col-left">[Reddit] 网络故障排查派</td>
+        <td>405</td>
+        <td>17.2%</td>
+        <td class="col-accent">31.9%</td>
+      </tr>
+      <tr>
+        <td class="col-left">[Reddit] 专业生态推荐与排障派</td>
+        <td>279</td>
+        <td>11.9%</td>
+        <td class="col-accent">41.9%</td>
+      </tr>
+      <tr>
+        <td class="col-left">[Reddit] 品牌固件失望转投派</td>
+        <td>236</td>
+        <td>10.0%</td>
+        <td class="col-accent">48.3%</td>
+      </tr>
+      <tr>
+        <td class="col-left">[Reddit] 同轴方案评估讨论派</td>
+        <td>212</td>
+        <td>9.0%</td>
+        <td class="col-accent">10.1%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="insight">
+    <strong>关键洞察：</strong>"<strong>品牌固件失望转投派</strong>"购买意愿率最高（48.3%），
+    这群用户已经被竞品（特别是某些 EOL 固件、付费墙）伤透，攻击轨 €65 3-pack 能直接转化。
+    "<strong>网络故障排查派</strong>"和"<strong>专业生态推荐与排障派</strong>"对主力轨 €73 接受度高，
+    GL.iNet OpenWrt 基因 + 长生命周期固件正中下怀。
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">第四部分 · 分析三</div>
+  <h2>价格情景 · 4 个价位的购买意愿曲线</h2>
+  <div class="desc">
+    在 €65 / €73 / €80 / €90 四个价位下，分别估算全市场加权和各分群的购买意愿率。
+    曲线越平缓 = 价格敏感度越低，可以放心定较高价；曲线越陡 = 敏感度高，需要价格让步。
+  </div>
+
+  <p class="ach-section-title">全市场加权购买意愿率 · 4 个价位</p>
+  <p class="ach-section-hint">从攻击价 €65 到上限价 €90，市场购买意愿率仅下滑 9.3 pp（34.0% → 24.7%）</p>
+  <div class="chart-box" id="chart-price-scenarios" style="height:300px"></div>
+
+  <div class="divider"></div>
+
+  <p class="ach-section-title">5 个最大分群 · 价格-购买意愿率曲线</p>
+  <p class="ach-section-hint">每条线 = 一个分群在不同价位的购买意愿率 · 曲线高低 = 该群对本品偏好强度</p>
+  <div class="chart-box" id="chart-segment-curves" style="height:360px"></div>
+
+  <div class="insight">
+    <strong>价格弹性结论：</strong>主力分群"品牌固件失望转投派"在 €65-€90 之间购买意愿率维持
+    53% → 40%（变化 12 pp），证明
+    <strong>规格 + 品牌信任优势足以扛住涨价</strong>。€73 是"市场友好 + 利润健康"双满足的甜蜜点。
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">第五部分 · 分析四</div>
+  <h2>市场空缺 · 哪些价位的哪些痛点没人解决</h2>
+  <div class="desc">
+    把痛点按"价位段（A/B/C/D/E）× 主题"切成 5×13 的矩阵，每格的"机会分数"
+    = 痛点密度 × 本品解决能力 × 未被满足程度。分数高 = 大缺口、本品该上。
+  </div>
+
+  <p class="ach-section-title">机会分数 · Top 10</p>
+  <p class="ach-section-hint">分数越高 = 越值得攻击；C 段（€150-220）是绝对主战场</p>
+  <div class="chart-box" id="chart-gap-ranking" style="height:400px"></div>
+
+  <p class="ach-section-title" style="margin-top:24px">价位竞品对位表 · 5 段价位的标杆品牌</p>
+  <table class="asin-tbl" style="margin-top:8px">
+    <thead><tr>
+      <th class="col-left">价位段</th><th class="col-left">区间</th>
+      <th class="col-left">代表竞品</th><th class="col-left">本品对位策略</th>
+    </tr></thead>
+    <tbody>
+      <tr><td class="col-left col-accent">A</td><td class="col-left">sub-€90 入门</td>
+        <td class="col-left">Deco BE25 · eero 7</td>
+        <td class="col-left">攻击轨 3-pack 攻击价 €65/节点</td></tr>
+      <tr><td class="col-left col-accent">B</td><td class="col-left">€90-150 中低</td>
+        <td class="col-left">Devolo Mesh 2</td>
+        <td class="col-left">主力轨 单件 + 套装</td></tr>
+      <tr><td class="col-left col-accent">C</td><td class="col-left">€150-220 中价 <strong>主战场</strong></td>
+        <td class="col-left">AVM FRITZ · Nest Wifi Pro</td>
+        <td class="col-left">主力轨 + 溢价轨 — 撕中价位</td></tr>
+      <tr><td class="col-left col-accent">D</td><td class="col-left">€220-330 高端</td>
+        <td class="col-left">Orbi 370 · ASUS BT8</td>
+        <td class="col-left">不主攻（brand-locked 用户难撬）</td></tr>
+      <tr><td class="col-left col-accent">E</td><td class="col-left">€330+ 顶级</td>
+        <td class="col-left">Linksys Velop Pro 7</td>
+        <td class="col-left">不参战（spec 攻不上去）</td></tr>
+    </tbody>
+  </table>
+
+  <div class="insight warning">
+    <strong>禁止组合警示：</strong>
+    单件 hard cap <strong>€100</strong>（用户脑里的"单件不超过 X"）/
+    套装预算 anchor <strong>€400</strong>（用户对多件全套的天花板）/
+    总价 anger zone <strong>€500</strong>（超出触发愤怒退货）。
+    所有 SKU 组合不得越线。
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">第六部分</div>
+  <h2>定价决策 · 三轨 SKU 上市矩阵</h2>
+  <div class="desc">
+    基于基准价 €205/3-pack（≈ €68/节点）和分群购买信号，建议上市三轨 SKU：
+    攻击轨抢量、主力轨稳利润、溢价轨树标杆。
+  </div>
+
+  <div class="sku-grid">
+    <div class="sku-card attack">
+      <h5>攻击轨</h5>
+      <div class="sku-label">攻击轨 · 3-pack</div>
+      <div class="sku-price">€195<span class="unit"> 套</span></div>
+      <div class="sku-meta">€65/节点 × 3 节点</div>
+      <div class="sku-msg">同价 Deco BE25，更稳，30 天无理由退</div>
+      <div class="sku-target"><strong>目标分群：</strong>品牌固件失望转投派 · 入门成效失望退货派 · 同牌加购受阻派</div>
+      <span class="sku-buy">购买意愿率 34.0%</span>
+    </div>
+    <div class="sku-card core">
+      <h5>主力轨（主推）</h5>
+      <div class="sku-label">主力轨 · 单件</div>
+      <div class="sku-price">€73<span class="unit"> 件</span></div>
+      <div class="sku-meta">€73/节点 × 1</div>
+      <div class="sku-msg">3 年使用成本 €285，比 eero 省 €257</div>
+      <div class="sku-target"><strong>目标分群：</strong>家庭网络性能 + 安全党 · 资深 IT 玩家 · 网络故障排查派</div>
+      <span class="sku-buy">购买意愿率 30.5%</span>
+    </div>
+    <div class="sku-card premium">
+      <h5>溢价轨</h5>
+      <div class="sku-label">溢价轨 · 单件</div>
+      <div class="sku-price">€90<span class="unit"> 件</span></div>
+      <div class="sku-meta">€90/节点 × 1</div>
+      <div class="sku-msg">FRITZ €537、Nest €459 都做不到的双回程，约半价拥有</div>
+      <div class="sku-target"><strong>目标分群：</strong>多网络安全/VPN 进阶 · 商旅 + VPN 用户 · Pro 玩家</div>
+      <span class="sku-buy">购买意愿率 24.7%</span>
+    </div>
+  </div>
+
+  <div class="insight">
+    <strong>三轨核心：</strong>攻击轨在 A 段（sub-€90）撬动失望转投派和入门退货派；
+    主力轨在 B-C 段切中性能 + 安全党 + 故障排查派的真实需求；
+    溢价轨用 €90 单件挑战 €150+ 的 Nest / FRITZ，让 VPN/Pro 玩家觉得"半价就能拥有"。
+    三轨同时在售可形成<strong>价格包夹</strong>，最大化覆盖。
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">第七部分</div>
+  <h2>上市路线图 · 结论与行动</h2>
+  <div class="desc">把分析变成动作，并明确什么数据需要在上市后回流校准。</div>
+
+  <div class="summary-grid">
+    <div class="summary-col">
+      <h4>3 个核心结论</h4>
+      <ol>
+        <li>四种独立方法收敛在 <strong>€194-€220/3-pack</strong> 区间（中位 €205），€73/节点处于下沿，对用户友好且利润健康。</li>
+        <li>价格敏感度低 — 即使涨到 €90，市场购买意愿率仅从 <strong>30.5% → 24.7%</strong>，证明<strong>有进一步定价空间</strong>。</li>
+        <li>最大未满足缺口在 <strong>C 段（€150-220）</strong>的 Mesh 稳定性 + 覆盖盲区，本品规格能正面攻击。</li>
+      </ol>
+    </div>
+    <div class="summary-col actions">
+      <h4>4 个下阶段行动</h4>
+      <ol>
+        <li><strong>三轨 SKU 同步上市：</strong>攻击轨 €65×3 / 主力轨 €73×1 / 溢价轨 €90×1（先 DE 市场打透，再外溢）。</li>
+        <li><strong>埋点真实销售数据：</strong>attach rate / 单 SKU 销量 / 实际成交价 → 回流校准购买意愿率模型。</li>
+        <li><strong>C 段进攻沟通：</strong>"稳定性 + 长固件支持 + 无订阅墙 + OpenWrt"作为对 Nest/FRITZ 的攻击文案主轴。</li>
+        <li><strong>3 个月后复盘：</strong>用真实成交数据反推（数据反推），更新基准价 v2。</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="glossary">
+    <h4>术语表</h4>
+    <dl>
+      <dt>基准价</dt><dd>三种独立方法（规格驱动 / 性价比前沿 / 痛点加权）的中位估值，作为定价锚点</dd>
+      <dt>规格驱动定价</dt><dd>按竞品 spec 拟合，反推本品该卖多少</dd>
+      <dt>性价比前沿</dt><dd>在性能-价格座标上的"同性能档最低价"曲线</dd>
+      <dt>痛点加权</dt><dd>按用户痛点的密度 × 本品解决能力，调整基础定价</dd>
+      <dt>机会分数</dt><dd>痛点密度 × 本品解决能力 × 未被满足程度，分数越高越值得进攻</dd>
+      <dt>购买意愿率</dt><dd>分群用户在某价位下点单的结构化概率（非真实成交率，需后续真实销售校准）</dd>
+      <dt>价格敏感度</dt><dd>价格上涨时购买意愿率下降的速度，曲线越平 = 越能涨价</dd>
+      <dt>真实销售校准</dt><dd>上市后用真实成交数据反推、更新模型参数</dd>
+    </dl>
+  </div>
+</div>
+
+<footer class="report-footer">
+  GL.iNet Data Team · 2026-05-18 · 数据源：12 款竞品 spec + Reddit/竞品评论 · DE 市场 EUR
+</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+var C = {tealDeep:'#274753', teal:'#297270', tealMid:'#299d8f', sage:'#8ab07c',
+  gold:'#e7c66b', orange:'#f3a361', coral:'#e66d50',
+  blue:'#297270', blueLt:'#8db5b0', emerald:'#299d8f',
+  amber:'#f3a361', red:'#e66d50', slate:'#274753', muted:'#5e8a87',
+  border:'#d8e5e2', grid:'#f0f5f3', tooltipBg:'rgba(39,71,83,0.92)'};
+function tooltipStyle(){return{backgroundColor:C.tooltipBg, borderColor:'rgba(255,255,255,0.12)', borderWidth:1,
+  textStyle:{color:'#F1F5F9', fontSize:13}, extraCssText:'border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.18);'};}
+function axisStyle(nameColor){return{axisLine:{lineStyle:{color:C.border}}, axisTick:{lineStyle:{color:C.border}},
+  axisLabel:{color:C.muted, fontSize:12}, nameTextStyle:{color:nameColor||C.muted, fontSize:12},
+  splitLine:{lineStyle:{color:C.grid, type:'dashed'}}};}
+function lerpColor(a,b,t){t=Math.max(0,Math.min(1,t)); var lr=parseInt(a.slice(1,3),16),lg=parseInt(a.slice(3,5),16),lb=parseInt(a.slice(5,7),16);
+  var dr=parseInt(b.slice(1,3),16),dg=parseInt(b.slice(3,5),16),db=parseInt(b.slice(5,7),16);
+  var r=Math.round(lr+(dr-lr)*t),g=Math.round(lg+(dg-lg)*t),bb=Math.round(lb+(db-lb)*t);
+  return '#'+((1<<24)+(r<<16)+(g<<8)+bb).toString(16).slice(1);}
+
+var DATA = {"threeMethods": [{"name": "方法一 · 规格驱动定价", "value": 194.0, "sub": "按竞品 spec 拟合预测"}, {"name": "方法二 · 性价比前沿对位", "value": 220.0, "sub": "对标 TP-Link Deco BE25"}, {"name": "方法三 · 痛点加权调整", "value": 201.0, "sub": "竞品 +3.2%"}, {"name": "三法中位（基准价）", "value": 205.0, "sub": "= 综合基准"}], "specImpact": [{"name": "总速率", "value": 1.07}, {"name": "WiFi 代数", "value": -0.531}, {"name": "高端品牌定位", "value": 0.171}, {"name": "网口速率", "value": 0.075}, {"name": "覆盖面积", "value": 0.056}, {"name": "是否 6 GHz", "value": 0.024}], "pareto": [{"name": "TP-Link Deco X50", "value": [-0.628, 177.0], "isPareto": true}, {"name": "TP-Link Deco BE3600 (BE23)", "value": [-0.334, 190.0], "isPareto": true}, {"name": "TP-Link Deco BE25", "value": [-0.123, 220.0], "isPareto": true}, {"name": "Amazon eero eero 7", "value": [-0.411, 242.0], "isPareto": false}, {"name": "TP-Link RE815XE", "value": [-0.328, 375.0], "isPareto": false}, {"name": "Google Nest Wifi Pro", "value": [0.259, 459.0], "isPareto": true}, {"name": "AVM FRITZ!Repeater 6000", "value": [-0.252, 537.0], "isPareto": false}, {"name": "NETGEAR Nighthawk EAX80", "value": [-0.252, 642.0], "isPareto": false}, {"name": "NETGEAR Orbi 370 (RBE373)", "value": [0.44, 650.0], "isPareto": true}, {"name": "ASUS ZenWiFi BT8", "value": [1.009, 750.0], "isPareto": true}, {"name": "Devolo Mesh WiFi 2", "value": [-0.876, 942.0], "isPareto": false}, {"name": "Linksys Velop Pro 7 (MBE7003)", "value": [1.496, 1000.0], "isPareto": true}], "ownPoint": {"name": "MeshNode（本品）", "perf": -0.123, "price": 219, "frontier_price": 220.0}, "topPains": [{"name": "WiFi覆盖与连接稳定短板", "value": 0.756, "source": "Competitor"}, {"name": "付费升级价值与售后落差", "value": 0.566, "source": "Competitor"}, {"name": "软件配置与管理体验短板", "value": 0.506, "source": "Competitor"}, {"name": "Mesh全链路连接稳定性短板", "value": 0.48, "source": "Competitor"}, {"name": "GL.iNet产品软硬件与售后综合痛…", "value": -0.462, "source": "Reddit"}, {"name": "WiFi稳定吞吐能力短板", "value": 0.35, "source": "Competitor"}, {"name": "网络设备配置与稳定性痛点", "value": 0.333, "source": "Reddit"}, {"name": "全屋覆盖范围不足", "value": 0.178, "source": "Competitor"}, {"name": "有线与宽带速率瓶颈", "value": 0.117, "source": "Reddit"}, {"name": "WiFi频段与覆盖综合短板", "value": 0.098, "source": "Reddit"}, {"name": "Mesh/卫星网络覆盖与性能短板", "value": 0.097, "source": "Reddit"}, {"name": "固件更新与验证问题", "value": 0.093, "source": "Reddit"}, {"name": "Mesh节点扩展部署负担高", "value": 0.065, "source": "Competitor"}, {"name": "Orbi全链路体验与性能崩塌", "value": 0.055, "source": "Reddit"}], "priceScenarios": [{"label": "攻击价 €65", "price": 65, "p_buy": 34.0}, {"label": "主力价 €73", "price": 73, "p_buy": 30.5}, {"label": "标准价 €80", "price": 80, "p_buy": 27.9}, {"label": "上限价 €90", "price": 90, "p_buy": 24.7}], "segmentCurves": {"prices": [65, 73, 80, 90], "series": [{"name": "家庭网络性能与安全派", "data": [28.7, 25.3, 22.8, 19.8], "share": 18.2}, {"name": "网络故障排查派", "data": [35.8, 31.9, 29.0, 25.5], "share": 17.2}, {"name": "专业生态推荐与排障派", "data": [46.2, 41.9, 38.6, 34.5], "share": 11.9}, {"name": "品牌固件失望转投派", "data": [52.6, 48.3, 44.8, 40.5], "share": 10.0}, {"name": "同轴方案评估讨论派", "data": [11.7, 10.1, 8.9, 7.6], "share": 9.0}]}, "gapRanking": [{"name": "C · Mesh 稳定性/回程", "value": 2.68, "solve": 0.7, "band": "C"}, {"name": "C · 覆盖盲区", "value": 2.41, "solve": 0.6, "band": "C"}, {"name": "A · Mesh 稳定性/回程", "value": 1.22, "solve": 0.7, "band": "A"}, {"name": "E · Mesh 稳定性/回程", "value": 1.22, "solve": 0.7, "band": "E"}, {"name": "D · Mesh 稳定性/回程", "value": 1.22, "solve": 0.7, "band": "D"}, {"name": "B · Mesh 稳定性/回程", "value": 1.22, "solve": 0.7, "band": "B"}, {"name": "E · 覆盖盲区", "value": 0.94, "solve": 0.6, "band": "E"}, {"name": "C · 安装配置门槛", "value": 0.74, "solve": 0.4, "band": "C"}, {"name": "D · 订阅墙", "value": 0.63, "solve": 1.0, "band": "D"}, {"name": "B · 订阅墙", "value": 0.63, "solve": 1.0, "band": "B"}]};
+
+// 1. Three methods bar (horizontal)
+(function(){
+  var el = document.getElementById('chart-three-methods');
+  if (!el) return;
+  var chart = echarts.init(el);
+  var names = DATA.threeMethods.map(function(d){return d.name;});
+  var values = DATA.threeMethods.map(function(d){return d.value;});
+  var max = Math.max.apply(null, values);
+  var colors = values.map(function(v,i){
+    if (i === values.length-1) return C.tealDeep;
+    return lerpColor('#b0d8d4', C.teal, v/max);
+  });
+  chart.setOption({
+    grid: {left:170, right:90, top:20, bottom:20},
+    tooltip: Object.assign({trigger:'axis', axisPointer:{type:'shadow'}, formatter:function(p){
+      var d = DATA.threeMethods[p[0].dataIndex];
+      return '<b>'+d.name+'</b><br>€'+d.value+' / 3-pack<br><span style="color:#bbb">'+d.sub+'</span>';
+    }}, tooltipStyle()),
+    xAxis: Object.assign({type:'value', name:'€ / 3-pack', max: Math.ceil(max*1.15/10)*10}, axisStyle()),
+    yAxis: Object.assign({type:'category', data:names, inverse:true}, axisStyle()),
+    series: [{type:'bar', data:values.map(function(v,i){return {value:v, itemStyle:{color:colors[i], borderRadius:[0,4,4,0]}};}),
+      barWidth:'55%', label:{show:true, position:'right', formatter:'€{c}', color:C.slate, fontWeight:700}}]
+  });
+})();
+
+// 2. Spec impact bar (horizontal)
+(function(){
+  var el = document.getElementById('chart-spec-impact');
+  if (!el) return;
+  var chart = echarts.init(el);
+  var data = DATA.specImpact;
+  var names = data.map(function(d){return d.name;});
+  var values = data.map(function(d){return d.value;});
+  var maxAbs = Math.max.apply(null, values.map(Math.abs));
+  chart.setOption({
+    grid: {left:140, right:60, top:20, bottom:30},
+    tooltip: Object.assign({trigger:'axis', axisPointer:{type:'shadow'}, formatter:function(p){
+      var v = p[0].value; return '<b>'+p[0].name+'</b><br>权重 '+(v>=0?'+':'')+v.toFixed(3);
+    }}, tooltipStyle()),
+    xAxis: Object.assign({type:'value', name:'涨价拉力（权重）', min:-maxAbs*1.1, max:maxAbs*1.1}, axisStyle()),
+    yAxis: Object.assign({type:'category', data:names, inverse:true}, axisStyle()),
+    series: [{type:'bar', data:values.map(function(v){return {value:v, itemStyle:{color: v>=0 ? C.teal : C.coral, borderRadius:[0,4,4,0]}};}),
+      barWidth:'55%', label:{show:true, position:'right', formatter:function(p){return (p.value>=0?'+':'')+p.value.toFixed(2);}, color:C.slate, fontWeight:700}}]
+  });
+})();
+
+// 3. Perf-price scatter
+(function(){
+  var el = document.getElementById('chart-perf-price-map');
+  if (!el) return;
+  var chart = echarts.init(el);
+  var pareto = DATA.pareto.filter(function(p){return p.isPareto;});
+  var nonPareto = DATA.pareto.filter(function(p){return !p.isPareto;});
+  var own = DATA.ownPoint;
+  chart.setOption({
+    grid: {left:60, right:30, top:30, bottom:50},
+    tooltip: Object.assign({trigger:'item', formatter:function(p){
+      return '<b>'+p.data.name+'</b><br>性能分 '+p.data.value[0]+'<br>价格 €'+p.data.value[1]+' / 3-pack';
+    }}, tooltipStyle()),
+    legend: {data:['性价比前沿','其他竞品','MeshNode（本品）'], top:0, right:0, textStyle:{color:C.muted, fontSize:12}},
+    xAxis: Object.assign({type:'value', name:'性能综合分'}, axisStyle()),
+    yAxis: Object.assign({type:'value', name:'€ / 3-pack'}, axisStyle()),
+    series: [
+      {name:'其他竞品', type:'scatter', symbolSize:14, data:nonPareto, itemStyle:{color:C.muted, opacity:0.5},
+       label:{show:true, position:'top', formatter:function(p){return p.data.name.length>16?p.data.name.slice(0,16):p.data.name;}, color:C.muted, fontSize:10}},
+      {name:'性价比前沿', type:'scatter', symbolSize:16, data:pareto, itemStyle:{color:C.orange, borderColor:C.coral, borderWidth:1.5},
+       label:{show:true, position:'top', formatter:function(p){return p.data.name.length>16?p.data.name.slice(0,16):p.data.name;}, color:C.slate, fontSize:11, fontWeight:600}},
+      {name:'MeshNode（本品）', type:'scatter', symbolSize:24, data:[{name:own.name, value:[own.perf, own.price]}],
+       itemStyle:{color:C.tealMid, borderColor:C.tealDeep, borderWidth:2},
+       label:{show:true, position:'right', formatter:'MeshNode €'+own.price, color:C.tealDeep, fontSize:13, fontWeight:800}}
+    ]
+  });
+})();
+
+// 4. Top pains horizontal bar
+(function(){
+  var el = document.getElementById('chart-top-pains');
+  if (!el) return;
+  var chart = echarts.init(el);
+  var data = DATA.topPains.slice().reverse();
+  chart.setOption({
+    grid: {left:170, right:80, top:20, bottom:30},
+    tooltip: Object.assign({trigger:'axis', axisPointer:{type:'shadow'}, formatter:function(p){
+      var d = data[p[0].dataIndex]; return '<b>'+d.name+'</b><br>来源 '+d.source+'<br>调整拉力 '+(d.value>=0?'+':'')+d.value.toFixed(2)+'%';
+    }}, tooltipStyle()),
+    xAxis: Object.assign({type:'value', name:'调整拉力 %', axisLabel:{formatter:function(v){return (v>=0?'+':'')+v.toFixed(1)+'%';}}}, axisStyle()),
+    yAxis: Object.assign({type:'category', data:data.map(function(d){return d.name;})}, axisStyle()),
+    series: [{type:'bar', data:data.map(function(d){return {value:d.value, itemStyle:{color: d.value>=0 ? (d.source==='Reddit'?C.tealMid:C.teal) : C.coral, borderRadius:[0,3,3,0]}};}),
+      barWidth:'60%', label:{show:true, position:'right', formatter:function(p){return (p.value>=0?'+':'')+p.value.toFixed(2)+'%';}, color:C.slate, fontSize:11, fontWeight:600}}]
+  });
+})();
+
+// 5. Price scenarios vertical bar
+(function(){
+  var el = document.getElementById('chart-price-scenarios');
+  if (!el) return;
+  var chart = echarts.init(el);
+  var data = DATA.priceScenarios;
+  var labels = data.map(function(d){return d.label;});
+  var values = data.map(function(d){return d.p_buy;});
+  chart.setOption({
+    grid: {left:60, right:30, top:30, bottom:50},
+    tooltip: Object.assign({trigger:'axis', axisPointer:{type:'shadow'}, formatter:function(p){
+      var d = data[p[0].dataIndex]; return '<b>'+d.label+'</b><br>价格 €'+d.price+'<br>市场购买意愿率 '+d.p_buy.toFixed(1)+'%';
+    }}, tooltipStyle()),
+    xAxis: Object.assign({type:'category', data:labels}, axisStyle()),
+    yAxis: Object.assign({type:'value', name:'购买意愿率 %', max:Math.ceil(Math.max.apply(null,values)*1.2)}, axisStyle()),
+    series: [{type:'bar', data:values.map(function(v,i){
+      var color = i===1 ? C.tealDeep : C.tealMid;
+      return {value:v, itemStyle:{color:color, borderRadius:[6,6,0,0]}};
+    }), barWidth:'45%', label:{show:true, position:'top', formatter:'{c}%', color:C.slate, fontWeight:700}}]
+  });
+})();
+
+// 6. Segment curves multi-line
+(function(){
+  var el = document.getElementById('chart-segment-curves');
+  if (!el) return;
+  var chart = echarts.init(el);
+  var prices = DATA.segmentCurves.prices;
+  var series = DATA.segmentCurves.series;
+  var colors = [C.tealDeep, C.tealMid, C.orange, C.sage, C.coral];
+  chart.setOption({
+    grid: {left:60, right:30, top:50, bottom:50},
+    tooltip: Object.assign({trigger:'axis', formatter:function(p){
+      var lines = '<b>价格 €'+prices[p[0].dataIndex]+' / 节点</b>';
+      p.forEach(function(s){ lines += '<br>'+s.marker+' '+s.seriesName+' · '+s.value+'%'; });
+      return lines;
+    }}, tooltipStyle()),
+    legend: {top:0, textStyle:{color:C.muted, fontSize:11}, type:'scroll'},
+    xAxis: Object.assign({type:'category', data:prices.map(function(p){return '€'+p;}), boundaryGap:false, name:'/ 节点'}, axisStyle()),
+    yAxis: Object.assign({type:'value', name:'购买意愿率 %', max:60}, axisStyle()),
+    series: series.map(function(s,i){return {
+      name: s.name + ' ('+s.share+'%)', type:'line', smooth:true, symbol:'circle', symbolSize:8,
+      data:s.data, lineStyle:{width:2.5, color:colors[i]}, itemStyle:{color:colors[i]},
+      label:{show:true, position:'top', formatter:'{c}%', fontSize:10, color:colors[i]}
+    };})
+  });
+})();
+
+// 7. Gap ranking horizontal bar
+(function(){
+  var el = document.getElementById('chart-gap-ranking');
+  if (!el) return;
+  var chart = echarts.init(el);
+  var data = DATA.gapRanking.slice().reverse();
+  var bandColor = {A:C.sage, B:C.tealMid, C:C.tealDeep, D:C.gold, E:C.coral};
+  chart.setOption({
+    grid: {left:220, right:60, top:20, bottom:30},
+    tooltip: Object.assign({trigger:'axis', axisPointer:{type:'shadow'}, formatter:function(p){
+      var d = data[p[0].dataIndex]; return '<b>'+d.name+'</b><br>机会分数 '+d.value.toFixed(2)+'<br>本品解决能力 '+(d.solve*100).toFixed(0)+'%';
+    }}, tooltipStyle()),
+    xAxis: Object.assign({type:'value', name:'机会分数'}, axisStyle()),
+    yAxis: Object.assign({type:'category', data:data.map(function(d){return d.name;})}, axisStyle()),
+    series: [{type:'bar', data:data.map(function(d){return {value:d.value, itemStyle:{color: bandColor[d.band] || C.muted, borderRadius:[0,4,4,0]}};}),
+      barWidth:'60%', label:{show:true, position:'right', formatter:function(p){return p.value.toFixed(2);}, color:C.slate, fontSize:12, fontWeight:700}}]
+  });
+})();
+
+window.addEventListener('resize', function(){
+  ['chart-three-methods','chart-spec-impact','chart-perf-price-map','chart-top-pains',
+   'chart-price-scenarios','chart-segment-curves','chart-gap-ranking'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) { var ch = echarts.getInstanceByDom(el); if (ch) ch.resize(); }
+  });
+});
+</script>
+</body></html>

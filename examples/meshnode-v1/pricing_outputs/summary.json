@@ -1,0 +1,184 @@
+{
+  "version": "pipeline-v1",
+  "currency": "EUR",
+  "hedonic": {
+    "r2": 0.9462709629643927,
+    "adj_r2": 0.881796118521664,
+    "n": 12,
+    "coefs": {
+      "const": -0.3108083315245409,
+      "wifi_gen": -0.5308235715330525,
+      "phy_total_mbps": 1.069532356615401,
+      "max_port_gbe": 0.07491767881927247,
+      "coverage_sqm": 0.05628550421124756,
+      "has_6ghz": 0.024179297889683093,
+      "is_premium_brand": 0.17137864938819813
+    },
+    "p_values": {
+      "const": 0.9135670572804624,
+      "wifi_gen": 0.00652008538148926,
+      "phy_total_mbps": 0.010973914356250296,
+      "max_port_gbe": 0.39217288583881654,
+      "coverage_sqm": 0.7127616371824471,
+      "has_6ghz": 0.8935351943911893,
+      "is_premium_brand": 0.4014577604271378
+    },
+    "own_pred": 194.46790378557048,
+    "own_pi_low": 127.8308476957262,
+    "own_pi_high": 295.84225000815877
+  },
+  "frontier": {
+    "own_perf_score": -0.12309767848452623,
+    "frontier_implied_price": 220.0,
+    "pareto_points": [
+      {
+        "brand": "TP-Link",
+        "model": "Deco X50",
+        "perf_score": -0.6278654717255245,
+        "price_3pack_equiv": 177.49999999999997
+      },
+      {
+        "brand": "TP-Link",
+        "model": "Deco BE3600 (BE23)",
+        "perf_score": -0.33427200124795925,
+        "price_3pack_equiv": 190.0
+      },
+      {
+        "brand": "TP-Link",
+        "model": "Deco BE25",
+        "perf_score": -0.12309767848452623,
+        "price_3pack_equiv": 220.0
+      },
+      {
+        "brand": "Google",
+        "model": "Nest Wifi Pro",
+        "perf_score": 0.259108298499231,
+        "price_3pack_equiv": 459.0
+      },
+      {
+        "brand": "NETGEAR",
+        "model": "Orbi 370 (RBE373)",
+        "perf_score": 0.44037259256318856,
+        "price_3pack_equiv": 649.9999999999999
+      },
+      {
+        "brand": "ASUS",
+        "model": "ZenWiFi BT8",
+        "perf_score": 1.0086352544900687,
+        "price_3pack_equiv": 750.0
+      },
+      {
+        "brand": "Linksys",
+        "model": "Velop Pro 7 (MBE7003)",
+        "perf_score": 1.4963610260064437,
+        "price_3pack_equiv": 1000.0
+      }
+    ],
+    "all_points": [
+      {
+        "brand": "TP-Link",
+        "model": "Deco X50",
+        "perf_score": -0.6278654717255245,
+        "price_3pack_equiv": 177.49999999999997,
+        "is_pareto": true
+      },
+      {
+        "brand": "TP-Link",
+        "model": "Deco BE3600 (BE23)",
+        "perf_score": -0.33427200124795925,
+        "price_3pack_equiv": 190.0,
+        "is_pareto": true
+      },
+      {
+        "brand": "TP-Link",
+        "model": "Deco BE25",
+        "perf_score": -0.12309767848452623,
+        "price_3pack_equiv": 220.0,
+        "is_pareto": true
+      },
+      {
+        "brand": "Amazon eero",
+        "model": "eero 7",
+        "perf_score": -0.4110581799694901,
+        "price_3pack_equiv": 242.5,
+        "is_pareto": false
+      },
+      {
+        "brand": "TP-Link",
+        "model": "RE815XE",
+        "perf_score": -0.32796150429648535,
+        "price_3pack_equiv": 375.0,
+        "is_pareto": false
+      },
+      {
+        "brand": "Google",
+        "model": "Nest Wifi Pro",
+        "perf_score": 0.259108298499231,
+        "price_3pack_equiv": 459.0,
+        "is_pareto": true
+      },
+      {
+        "brand": "AVM",
+        "model": "FRITZ!Repeater 6000",
+        "perf_score": -0.25213189432961064,
+        "price_3pack_equiv": 537.0,
+        "is_pareto": false
+      },
+      {
+        "brand": "NETGEAR",
+        "model": "Nighthawk EAX80",
+        "perf_score": -0.251950846803713,
+        "price_3pack_equiv": 642.0,
+        "is_pareto": false
+      },
+      {
+        "brand": "NETGEAR",
+        "model": "Orbi 370 (RBE373)",
+        "perf_score": 0.44037259256318856,
+        "price_3pack_equiv": 649.9999999999999,
+        "is_pareto": true
+      },
+      {
+        "brand": "ASUS",
+        "model": "ZenWiFi BT8",
+        "perf_score": 1.0086352544900687,
+        "price_3pack_equiv": 750.0,
+        "is_pareto": true
+      },
+      {
+        "brand": "Devolo",
+        "model": "Mesh WiFi 2",
+        "perf_score": -0.8761395947016234,
+        "price_3pack_equiv": 942.0,
+        "is_pareto": false
+      },
+      {
+        "brand": "Linksys",
+        "model": "Velop Pro 7 (MBE7003)",
+        "perf_score": 1.4963610260064437,
+        "price_3pack_equiv": 1000.0,
+        "is_pareto": true
+      }
+    ]
+  },
+  "pain": {
+    "weighted_net_adjustment_pct": 3.2305293955500263,
+    "pain_adjusted_price": 200.75024658227326
+  },
+  "combined_range": {
+    "min": 194.46790378557048,
+    "mid": 205.07271678928123,
+    "max": 220.0
+  },
+  "own_product_spec_used": {
+    "wifi_gen": 7.0,
+    "phy_total_mbps": 3570,
+    "max_port_gbe": 2.5,
+    "coverage_sqm": 604,
+    "has_6ghz": 0,
+    "is_premium_brand": 0,
+    "ram_mb_num": 512,
+    "n_bands": 2,
+    "ppt_price_eur_per_unit": 73
+  }
+}
