@@ -208,13 +208,27 @@ HTML 报告**严禁出现**：Hedonic / Pareto / β / logit / sigmoid / P(buy) /
 
 MD 方法详解可以用术语，因为读者是分析师。
 
-### 跳过 Phase 1.5 人工标注
+### 跳过 Phase 1.5 人工标注（推荐 LLM 自动校准代替）
 
 v1 baseline 不走 N=200 人工标注（人手贵）。校准走两条：
 - **主**：Phase 4 上市后真实销售 posterior（需 launch 前埋点）
-- **辅**：LLM 自动代理标注（可选 / 3 小时 / 不到 $25）
+- **辅**：**LLM 自动代理标注**（推荐 launch 前做）— 用 DeepSeek API 跑全量标注，25-30 分钟完成，成本 < $2，比人工 N=200 快 200 倍且更可靠
 
-报告里不要让管理层等「Phase 1.5 完成」。
+调用方式：
+```bash
+# 准备：把评论 corpus 转成 sample_full.csv (含 row_id/text/segment_k20/source)
+export DEEPSEEK_API_KEY=sk-xxx
+python scripts/llm_annotate_deepseek.py --input sample_full.csv --output llm_scores.parquet --concurrency 15
+python scripts/compute_calibration.py --llm-scores llm_scores.parquet --sample-meta sample_full.csv --prior-segments segment_pricing_summary.csv --config <category>.json --output-dir calibrated/
+python scripts/rerun_phase2_calibrated.py --phase0-summary summary.json --phase1-signals segment_pricing_summary.csv --config-v1 <category>.json --config-v2 calibrated/pricing_model_params_v2_calibrated.json --output-dir calibrated/
+```
+
+校准输出：
+- `calibration_summary.csv` — 每个信号的 Pearson r + 等级 (trustworthy / grey / discard / rare_no_prior) + β old/new
+- `pricing_model_params_v2_calibrated.json` — 修正后的完整 config
+- `before_after_comparison.csv` — P(buy) 前后对比（典型校准后下调 5-10pp）
+
+样例参考：`examples/meshnode-v2-calibrated/`
 
 ### 货币统一
 
