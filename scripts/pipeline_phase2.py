@@ -40,7 +40,13 @@ def main():
     config = load_config(args.config)
     summary = json.loads(Path(args.phase0_summary).read_text())
 
-    anchor_3pack = summary["combined_range"]["mid"]
+    # 兼容 phase0 输出格式: pipeline_phase0 用 combined_range, v1 legacy 用 combined_range_v1
+    if "combined_range" in summary:
+        anchor_3pack = summary["combined_range"]["mid"]
+    elif "combined_range_v1" in summary:
+        anchor_3pack = summary["combined_range_v1"]["mid"]
+    else:
+        raise SystemExit("summary.json 缺 combined_range")
     anchor_unit = anchor_3pack / 3  # convention: 3-pack equivalent
 
     base_logit = config.get("base_logit", -2.20)
@@ -49,6 +55,9 @@ def main():
     signals = config["signals"]
 
     seg = pd.read_csv(args.phase1_signals)
+    # 兼容 segment 列名: 新 phase1_llm 用 "segment", 旧 phase1 用 "llm_label_k20"
+    if "segment" not in seg.columns and "llm_label_k20" in seg.columns:
+        seg = seg.rename(columns={"llm_label_k20": "segment"})
     print(f"载入 {len(seg)} 个 segments")
     print(f"ANCHOR per unit: {anchor_unit:.0f} {config['currency']}")
 

@@ -28,9 +28,19 @@ git clone https://github.com/Spin-MENG/Price_Strategy.git pricing-pipeline
 | 输入 | 必需 | 格式 | 说明 |
 |---|---|---|---|
 | 4-5 个竞品种子 | ✓ | CSV（brand/model/price/currency/market） | 自动 WebSearch 扩展到 15 个 |
-| 竞品用户痛点 | ✓ | HTML / CSV | customer-persona-clustering 输出可直接喂 |
+| **竞品 raw reviews** | ✓ | CSV/parquet（含 text + segment_label） | **LLM 直接打信号分**（v2 默认） |
+| **LLM API key** | ✓ | 环境变量（默认 DeepSeek） | 信号识别用 · ~$1-2 / 4000 条 |
+| 竞品用户痛点 HTML | ✓ | HTML | 第四法白地分析用 |
 | 本品规格 + 定价 | 可选 | dict | 不给用配置默认值 |
-| Reddit 痛点 / 画像 | 可选 | HTML / CSV | 给则两源加权 |
+| Reddit reviews + 痛点 | 可选 | 同上 | 给则覆盖更广 |
+
+## 关键设计：LLM 信号识别 = 主流程，不是校准
+
+v2 把 LLM 标注从「事后校准」改为「Phase 1 默认步骤」：
+- 每条 review 直接用 LLM 按信号定义打 0/1/2 分
+- 信号即 ground truth，无需事后校准
+- 不依赖关键词匹配 / persona priors
+- 旧 cluster-aggregated proxy 保留为 fallback（`pipeline_phase1.py`）
 
 ## 用法
 
