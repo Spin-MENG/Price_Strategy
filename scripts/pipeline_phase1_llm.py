@@ -33,26 +33,42 @@ import pandas as pd
 from openai import OpenAI
 
 
-def build_prompt(signals: dict) -> str:
-    """从品类配置的 signals 字典构造 LLM 标注 prompt。"""
+def build_prompt(signals: dict, currency: str = "EUR") -> str:
+    """从品类配置的 signals 字典构造 LLM 标注 prompt。
+
+    v2: 同时抽 4 个 WTP 字段（合并自 B 方案试做）。
+    """
     bullet = []
     for i, (sig_id, sig_def) in enumerate(signals.items(), 1):
         desc = sig_def.get("description") or sig_def.get("label") or sig_id.replace("_score", "").replace("_", " ")
         bullet.append(f"{i}. {sig_id} — {desc}")
-    return f"""请按以下 {len(signals)} 个信号给每条评论打 0/1/2 分
-（0=无证据，1=弱证据，2=强证据）：
+
+    return f"""任务 A · 按以下 {len(signals)} 个信号给每条评论打 0/1/2 分（0=无证据 / 1=弱 / 2=强）：
 
 {chr(10).join(bullet)}
 
-每个信号必须给 0、1、或 2。不确定时给 0。
-输出严格 JSON 格式，键名与信号名完全一致。例：
-{{"{list(signals.keys())[0]}": 0, "{list(signals.keys())[1]}": 1, ...}}
+任务 B · 抽 WTP（愿付价格）4 个字段：
+- wtp_mentioned: 0/1（评论是否明确提到任何价格数字）
+- wtp_value_eur: null 或 一个数字（标准化到 {currency}；如非 {currency} 按汇率换算 — 1 USD=0.92 EUR, 1 GBP=1.18 EUR）
+- wtp_sentiment: 字符串
+  · "anchor"   — 提到外部替代品价（如 "switched to 75€ alternative"）
+  · "ceiling"  — 心理上限（"wouldn't pay more than €100"）
+  · "floor"    — 心理下限/觉得值更多（"worth at least €150"）
+  · "fair"     — 觉得该价位合理
+  · "complaint"— 嫌贵但没说具体数（此时 wtp_value_eur=null）
+  · null       — 评论里完全没碰价格
+- wtp_context: 30 字内原文节选（包含价格那句），null 如无
 
-只输出 JSON，不要任何解释文字。"""
+输出严格 JSON，所有 N+4 字段必须出现。例：
+{{"{list(signals.keys())[0]}": 0, ..., "wtp_mentioned": 1, "wtp_value_eur": 75,
+  "wtp_sentiment": "anchor", "wtp_context": "switched to 75€ alternative"}}
+
+只输出 JSON，不要解释。"""
 
 
 def annotate_one(client: OpenAI, row: dict, system_prompt: str,
                   signal_ids: list, model: str) -> dict:
+    """v2: 同时抽 17 信号 + 4 WTP 字段。"""
     text = str(row.get("text", "")).strip()[:1200]
     title = str(row.get("title", "")).strip()
     persona = str(row.get("persona", "")).strip()[:300]
@@ -64,7 +80,7 @@ def annotate_one(client: OpenAI, row: dict, system_prompt: str,
 中文 persona 分析（参考，可能为空）:
 {persona or '(无)'}
 
-按信号定义给 0/1/2 分，输出 JSON。"""
+按 N+4 字段输出 JSON。"""
 
     try:
         resp = client.chat.completions.create(
@@ -74,23 +90,36 @@ def annotate_one(client: OpenAI, row: dict, system_prompt: str,
                 {"role": "user", "content": user_msg},
             ],
             response_format={"type": "json_object"},
-            temperature=0.1, max_tokens=600,
+            temperature=0.1, max_tokens=800,
         )
         scores = json.loads(resp.choices[0].message.content)
         result = {"row_id": row["row_id"]}
+        # 信号
         for sig in signal_ids:
             v = scores.get(sig, 0)
             try:
-                v = int(v)
-                v = max(0, min(2, v))
+                v = int(v); v = max(0, min(2, v))
             except Exception:
                 v = 0
             result[sig] = v
+        # WTP 字段（B 方案合并）
+        result["wtp_mentioned"] = int(scores.get("wtp_mentioned", 0) or 0)
+        wtpv = scores.get("wtp_value_eur")
+        try:
+            result["wtp_value_eur"] = float(wtpv) if wtpv is not None and wtpv != "" else None
+        except Exception:
+            result["wtp_value_eur"] = None
+        sent = scores.get("wtp_sentiment")
+        result["wtp_sentiment"] = sent if sent in ("anchor", "ceiling", "floor", "fair", "complaint") else None
+        ctx = scores.get("wtp_context")
+        result["wtp_context"] = str(ctx) if ctx else None
         return result
     except Exception as e:
         result = {"row_id": row["row_id"], "_error": str(e)[:120]}
         for sig in signal_ids:
             result[sig] = 0
+        result.update({"wtp_mentioned": 0, "wtp_value_eur": None,
+                       "wtp_sentiment": None, "wtp_context": None})
         return result
 
 
@@ -117,7 +146,8 @@ def main():
     config = json.loads(Path(args.config).read_text())
     signals = config["signals"]
     signal_ids = list(signals.keys())
-    system_prompt = "你是消费电子市场评论分析专家。任务：阅读每条用户评论，按信号定义给 0/1/2 分。\n\n" + build_prompt(signals)
+    currency = config.get("currency", "EUR")
+    system_prompt = "你是消费电子市场评论分析专家。任务：按信号定义打分 + 抽 WTP 价格锚点。\n\n" + build_prompt(signals, currency)
 
     df_in = pd.read_csv(args.reviews_csv)
     df_in["row_id"] = df_in["row_id"].astype(str)
