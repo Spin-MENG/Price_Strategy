@@ -1,9 +1,12 @@
 """
-Phase 1 v2 · LLM 信号识别（默认主流程）
+Phase 1 v3 · LLM 信号识别（默认主流程）
 
 每条 review 用 LLM (DeepSeek 默认) 按 N 信号定义打 0/1/2 分，
 按 segment 聚合 → segment_pricing_summary.csv，Phase 2 直接用。
 
+vs v2:
+  · WTP 抽取增加 wtp_unit_type 强制枚举字段，解决「单节点价 vs 全套价 vs ISP 月费」混合问题
+  · 旧 wtp_value_eur 字段保留，下游 analyze_wtp.py 可按 unit_type 归一/过滤
 vs 旧 phase1 (cluster-aggregated proxy):
   · review-level 精度而非 cluster-aggregated
   · 信号 ground truth，无需事后校准
@@ -15,7 +18,7 @@ vs 旧 phase1 (cluster-aggregated proxy):
   --output-dir      落盘目录
 
 输出:
-  llm_signal_scores.parquet           每 review × N 信号
+  llm_signal_scores.parquet           每 review × N 信号 + 5 WTP 字段（含 wtp_unit_type）
   segment_pricing_summary.csv         segment × N 信号（Phase 2 直接读）
 
 环境变量: DEEPSEEK_API_KEY
@@ -33,10 +36,25 @@ import pandas as pd
 from openai import OpenAI
 
 
+# WTP 粒度枚举（v3 新增）。analyze_wtp.py 按 unit_type 归一 / 过滤。
+WTP_UNIT_TYPES = (
+    "single_router",         # 单台路由器 / 单 mesh 节点
+    "2_pack",                # 2 节点套装
+    "3_pack",                # 3 节点套装（最常见 mesh）
+    "5_pack",                # 5 节点套装
+    "bundle_unknown_pack",   # 是路由器套装但未明示 pack size
+    "monthly_isp_fee",       # 宽带 ISP 服务月费（"$50/mo for internet"）
+    "monthly_subscription",  # 路由器订阅服务（eero Plus / HomeShield / AVM Smart Home）
+    "pc_parts",              # PC / 装机配件（SSD / CPU / GPU / 机箱）
+    "other",                 # 跟 mesh router 无关的其他消费品
+)
+
+
 def build_prompt(signals: dict, currency: str = "EUR") -> str:
     """从品类配置的 signals 字典构造 LLM 标注 prompt。
 
-    v2: 同时抽 4 个 WTP 字段（合并自 B 方案试做）。
+    v3: 同时抽 5 个 WTP 字段（在 v2 基础上增加 wtp_unit_type 强制枚举，解决
+    单节点价 vs 全套价 vs ISP 月费 混合问题）。
     """
     bullet = []
     for i, (sig_id, sig_def) in enumerate(signals.items(), 1):
@@ -47,7 +65,7 @@ def build_prompt(signals: dict, currency: str = "EUR") -> str:
 
 {chr(10).join(bullet)}
 
-任务 B · 抽 WTP（愿付价格）4 个字段：
+任务 B · 抽 WTP（愿付价格）5 个字段：
 - wtp_mentioned: 0/1（评论是否明确提到任何价格数字）
 - wtp_value_eur: null 或 一个数字（标准化到 {currency}；如非 {currency} 按汇率换算 — 1 USD=0.92 EUR, 1 GBP=1.18 EUR）
 - wtp_sentiment: 字符串
@@ -58,17 +76,30 @@ def build_prompt(signals: dict, currency: str = "EUR") -> str:
   · "complaint"— 嫌贵但没说具体数（此时 wtp_value_eur=null）
   · null       — 评论里完全没碰价格
 - wtp_context: 30 字内原文节选（包含价格那句），null 如无
+- wtp_unit_type: 字符串，**严格从下列枚举中选一个**（不可自创）：
+  · "single_router"        — 单台路由器/单 mesh 节点的售价或愿付价（"$73 per node"、"se cambio por otro de 75e"）
+  · "2_pack"               — 明确 2 台 / 2 节点套装价（"2-pack for $130"、"pack of 2"）
+  · "3_pack"               — 明确 3 台 / 3 节点套装价（"3 pack for 170€"、"pack de 3"、"3-pack bundle"）
+  · "5_pack"               — 明确 5 台套装价
+  · "bundle_unknown_pack"  — 是路由器套装但未明示几台（"the bundle was £250"）
+  · "monthly_isp_fee"      — 宽带 ISP 服务月费（"$50 a month for internet"、"$70/mo for 1gig"）
+  · "monthly_subscription" — 路由器附加订阅（eero Plus / HomeShield / AVM Smart Home 等）
+  · "pc_parts"             — PC / 装机配件 / SSD / CPU / GPU / 机箱 / 内存 等硬件
+  · "other"                — 跟 mesh router 无关的其他价（游戏、消费品、二手电器、配件等）
+  · null                   — wtp_mentioned=0 时
+  注意：当用户说 "wifi 6e router with satellite for $90" 时是 single_router（路由器主体+卫星算一台）；
+  说 "I pay $50 a month" 没说服务内容时按 monthly_isp_fee 处理（最常见上下文）。
 
-输出严格 JSON，所有 N+4 字段必须出现。例：
-{{"{list(signals.keys())[0]}": 0, ..., "wtp_mentioned": 1, "wtp_value_eur": 75,
-  "wtp_sentiment": "anchor", "wtp_context": "switched to 75€ alternative"}}
+输出严格 JSON，所有 N+5 字段必须出现。例：
+{{"{list(signals.keys())[0]}": 0, ..., "wtp_mentioned": 1, "wtp_value_eur": 170,
+  "wtp_sentiment": "fair", "wtp_context": "I got 3 pack for 170€", "wtp_unit_type": "3_pack"}}
 
 只输出 JSON，不要解释。"""
 
 
 def annotate_one(client: OpenAI, row: dict, system_prompt: str,
                   signal_ids: list, model: str) -> dict:
-    """v2: 同时抽 17 信号 + 4 WTP 字段。"""
+    """v3: 同时抽 17 信号 + 5 WTP 字段（含 wtp_unit_type 强制枚举）。"""
     text = str(row.get("text", "")).strip()[:1200]
     title = str(row.get("title", "")).strip()
     persona = str(row.get("persona", "")).strip()[:300]
@@ -80,7 +111,7 @@ def annotate_one(client: OpenAI, row: dict, system_prompt: str,
 中文 persona 分析（参考，可能为空）:
 {persona or '(无)'}
 
-按 N+4 字段输出 JSON。"""
+按 N+5 字段输出 JSON。"""
 
     try:
         resp = client.chat.completions.create(
@@ -90,7 +121,7 @@ def annotate_one(client: OpenAI, row: dict, system_prompt: str,
                 {"role": "user", "content": user_msg},
             ],
             response_format={"type": "json_object"},
-            temperature=0.1, max_tokens=800,
+            temperature=0.1, max_tokens=900,
         )
         scores = json.loads(resp.choices[0].message.content)
         result = {"row_id": row["row_id"]}
@@ -102,7 +133,7 @@ def annotate_one(client: OpenAI, row: dict, system_prompt: str,
             except Exception:
                 v = 0
             result[sig] = v
-        # WTP 字段（B 方案合并）
+        # WTP 字段（v3: 5 个，含 unit_type）
         result["wtp_mentioned"] = int(scores.get("wtp_mentioned", 0) or 0)
         wtpv = scores.get("wtp_value_eur")
         try:
@@ -113,13 +144,16 @@ def annotate_one(client: OpenAI, row: dict, system_prompt: str,
         result["wtp_sentiment"] = sent if sent in ("anchor", "ceiling", "floor", "fair", "complaint") else None
         ctx = scores.get("wtp_context")
         result["wtp_context"] = str(ctx) if ctx else None
+        utype = scores.get("wtp_unit_type")
+        result["wtp_unit_type"] = utype if utype in WTP_UNIT_TYPES else None
         return result
     except Exception as e:
         result = {"row_id": row["row_id"], "_error": str(e)[:120]}
         for sig in signal_ids:
             result[sig] = 0
         result.update({"wtp_mentioned": 0, "wtp_value_eur": None,
-                       "wtp_sentiment": None, "wtp_context": None})
+                       "wtp_sentiment": None, "wtp_context": None,
+                       "wtp_unit_type": None})
         return result
 
 
@@ -223,11 +257,21 @@ def main():
     print(f"→ {out_dir / 'segment_pricing_summary.csv'}  ({len(seg)} segments × {len(signal_ids)} signals)")
 
     # 信号活跃度报告
-    print(f"\n=== 17 信号活跃度（LLM 评论 ≥ 1 分的比例）===")
+    print(f"\n=== {len(signal_ids)} 信号活跃度（LLM 评论 ≥ 1 分的比例）===")
     for sig in signal_ids:
         rate = (final[sig] >= 1).mean()
         bar = "█" * int(rate * 50)
         print(f"  {sig:40s} {rate:5.1%}  {bar}")
+
+    # WTP unit_type 分布报告（v3 新增）
+    if "wtp_unit_type" in final.columns:
+        with_value = final[final["wtp_value_eur"].notna()]
+        print(f"\n=== wtp_unit_type 分布（{len(with_value)} 条有 EUR 值的评论）===")
+        ut_counts = with_value["wtp_unit_type"].fillna("(null)").value_counts()
+        for ut, n in ut_counts.items():
+            keep = "✓ keep" if ut in ("single_router","2_pack","3_pack","5_pack","bundle_unknown_pack") else "✗ drop"
+            print(f"  {ut:24s} {n:>5}  {keep}")
+        print("  → 下游 analyze_wtp.py 按 unit_type 归一到单节点 / 套装两条独立分布")
 
 
 if __name__ == "__main__":
