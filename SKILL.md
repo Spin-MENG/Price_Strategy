@@ -124,10 +124,11 @@ python scripts/pipeline_phase0.py \
   - `references/method-2-pareto.md`
   - `references/method-3-pain.md`
 
-### Step 5 · Phase 1 · LLM 信号识别（替代旧 cluster-aggregated proxy）
+### Step 5 · Phase 1 · LLM 信号识别 + WTP 抽取（替代旧 cluster-aggregated proxy）
 
 **Phase 1 现在直接用 LLM 对每条评论按 17 信号定义打分**，不再依赖关键词匹配 + persona priors。
-信号即 ground truth，无需事后校准。
+信号即 ground truth，无需事后校准。**v3 增加 wtp_unit_type 强制枚举**，把 WTP 价格按粒度
+分类，避免单节点价 / 套装价 / ISP 月费 / PC 配件 混在一个分布里。
 
 ```bash
 # 5a. 标准化 reviews CSV（如果原数据是 parquet 或不规范 CSV）
@@ -142,7 +143,8 @@ python scripts/prep_reviews_csv.py \
   --input <reddit_corpus> --output reviews.csv --append \
   --text-col body --segment-col flair --source reddit
 
-# 5b. LLM 批量信号识别（默认 DeepSeek · ~6-15 分钟 / 3000-4000 条 · < $2）
+# 5b. LLM 批量信号识别 + WTP 抽取
+#     (默认 DeepSeek · ~6-15 分钟 / 3000-4000 条 · < )
 export DEEPSEEK_API_KEY=sk-xxx
 python scripts/pipeline_phase1_llm.py \
   --reviews-csv reviews.csv \
@@ -150,11 +152,41 @@ python scripts/pipeline_phase1_llm.py \
   --output-dir pricing_outputs/ \
   --concurrency 15
 
-# 输出: pricing_outputs/llm_signal_scores.parquet (每 review × N 信号)
-#       pricing_outputs/segment_pricing_summary.csv (segment × N 信号)
+# 输出:
+#   pricing_outputs/llm_signal_scores.parquet
+#     每 review × N 信号 + 5 WTP 字段:
+#       wtp_mentioned / wtp_value_eur / wtp_sentiment / wtp_context / wtp_unit_type
+#   pricing_outputs/segment_pricing_summary.csv (segment × N 信号)
 ```
 
-### Step 6 · Phase 0.5 + Phase 2
+**wtp_unit_type 枚举** (v3+, 严格分类)：
+- `single_router` / `2_pack` / `3_pack` / `5_pack` / `bundle_unknown_pack` — keep
+- `monthly_isp_fee` / `monthly_subscription` / `pc_parts` / `other` — drop downstream
+
+### Step 5.5 (可选) · Router-Relevance 过滤
+
+若原始抓取（Reddit / 论坛）含大量无关品类讨论（游戏 / 装机 / 闲聊），需要在 Phase 2 之前
+把信号活跃度被稀释的噪声剔除。
+
+```bash
+python scripts/pipeline_signal_filter.py \
+  --reviews-csv reviews.csv \
+  --scores pricing_outputs/llm_signal_scores.parquet \
+  --config <category-config.json> \
+  --output-dir pricing_outputs/filter/ \
+  --include-sources amazon            # 白名单：电商评论默认全保留
+  # 非白名单 source 要求 sum(signals) >= 1 才保留
+
+# 输出:
+#   reviews_router_relevant.csv               过滤后 reviews
+#   scores_router_relevant.parquet            过滤后 scores
+#   segment_pricing_summary_router.csv        过滤后重聚合（Phase 2 直接读）
+#   filter_report.json                        过滤统计
+```
+
+**何时跳过这一步**：所有 review 都已经是同品类相关（如纯电商评论），跳过即可。
+
+### Step 6 · Phase 0.5 + Phase 2 + WTP
 
 ```bash
 # 6a. 第四法 · 市场缺口（用痛点 HTML）
@@ -165,11 +197,27 @@ python scripts/pipeline_market_gap.py \
   --output-dir pricing_outputs/
 
 # 6b. Phase 2 · 价格情景 logit
+#     若跑了 Step 5.5，--phase1-signals 改读 filter 下的 segment_pricing_summary_router.csv
 python scripts/pipeline_phase2.py \
   --phase0-summary pricing_outputs/summary.json \
   --phase1-signals pricing_outputs/segment_pricing_summary.csv \
   --config <category-config.json> \
   --output-dir pricing_outputs/
+
+# 6c. WTP 分析 · unit-aware（v3+，输出单节点 + 套装两条独立分布）
+#     直接读 phase1_llm 的全量 scores，靠 wtp_unit_type 剔除 ISP / 配件噪声
+python scripts/analyze_wtp.py \
+  --scores pricing_outputs/llm_signal_scores.parquet \
+  --reviews reviews.csv \
+  --output-dir pricing_outputs/ \
+  --ppt-price-eur 73 \
+  --ppt-bundle-eur 219
+# 输出:
+#   wtp_per_node.csv          单节点 WTP（已归一）→ PPT 单节点价对位
+#   wtp_bundle.csv            套装总价 WTP → PPT 套装价对位
+#   wtp_clean_anchors.csv     剔除 ISP / 配件后的全部锚点（含 per_node_eur 归一列）
+#   wtp_summary.csv           [legacy] 全量 segment × sentiment（不剔除）
+#   wtp_anchors.csv           [legacy] 全量锚点
 ```
 
 → `references/method-4-gap.md` + `references/phase-1-2-logit.md`
@@ -307,8 +355,10 @@ python scripts/compute_calibration.py --llm-scores llm_signal_scores.parquet ...
 │   ├── prep_reviews_csv.py            # raw parquet/csv → 标准 reviews CSV
 │   ├── expand_competitors.py          # 4-5 种子 → 15 个 (WebSearch)
 │   ├── pipeline_phase0.py             # 三法 (Hedonic + Pareto + Pain)
-│   ├── pipeline_phase1_llm.py         # ★ Phase 1 主流程: LLM 信号识别 (DeepSeek)
+│   ├── pipeline_phase1_llm.py         # ★ Phase 1 主流程: LLM 信号识别 + WTP (5 字段含 unit_type)
 │   ├── pipeline_phase1.py             # Phase 1 legacy: cluster-aggregated proxy (fallback)
+│   ├── pipeline_signal_filter.py      # ★ Step 5.5 (可选): router-relevance 过滤 + 重聚合
+│   ├── analyze_wtp.py                 # ★ WTP unit-aware 分析 (单节点 + 套装 双分布)
 │   ├── pipeline_phase2.py             # 价格情景 logit
 │   ├── pipeline_market_gap.py         # Phase 0.5 第四法
 │   ├── render_method_doc.py           # MD 方法详解生成
